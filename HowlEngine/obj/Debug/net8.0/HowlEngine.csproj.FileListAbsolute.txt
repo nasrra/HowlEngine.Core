@@ -10,3 +10,4 @@ C:\MonogameProjects\HowlEngine\HowlEngine\obj\Debug\net8.0\HowlEngine.dll
 C:\MonogameProjects\HowlEngine\HowlEngine\obj\Debug\net8.0\refint\HowlEngine.dll
 C:\MonogameProjects\HowlEngine\HowlEngine\obj\Debug\net8.0\HowlEngine.pdb
 C:\MonogameProjects\HowlEngine\HowlEngine\obj\Debug\net8.0\ref\HowlEngine.dll
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Debug\net8.0\HowlEngine.sourcelink.json
