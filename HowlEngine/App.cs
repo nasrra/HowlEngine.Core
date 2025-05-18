@@ -2,6 +2,7 @@ using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using HowlEngine.Input;
 
 namespace HowlEngine;
 
@@ -30,6 +31,13 @@ public class HowlApp : Game {
     /// Gets the content manager used to load global assets.
     /// </summary>
     public static new ContentManager Content { get; private set; }
+
+    /// <summary>
+    /// Gets the input manager used to get keyboard, mouse, and gamepad input.
+    /// </summary>
+    public static InputManager Input {get; private set;}
+
+    public static float DeltaTime{get; private set;}
 
     public HowlApp(string title, int width, int height, bool fullScreen, bool mouseVisible) {
 
@@ -62,6 +70,7 @@ public class HowlApp : Game {
         Content.RootDirectory = "Content";
 
         IsMouseVisible = mouseVisible;
+
     }
 
     protected override void Initialize(){
@@ -72,5 +81,33 @@ public class HowlApp : Game {
 
         // create the sprite batch instance.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
+        
+        // Create a new input manager.
+        Input = new InputManager();
 	}
+
+    protected override void Update(GameTime gameTime){
+        Input.Update(gameTime);
+        DeltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        base.Update(gameTime);
+    }
+
+    protected void SetFrameRate(float frameRate){
+        IsFixedTimeStep = true;
+        TargetElapsedTime = TimeSpan.FromSeconds(1.0/frameRate);
+    }
+
+    protected void UncapFrameRate(){
+        IsFixedTimeStep = false;
+    }
+
+    protected void EnableVSync(){
+        Graphics.SynchronizeWithVerticalRetrace = true; // Disable V-Sync
+        Graphics.ApplyChanges();
+    }
+
+    protected void DisableVSync(){
+        Graphics.SynchronizeWithVerticalRetrace = false; // Disable V-Sync
+        Graphics.ApplyChanges();        
+    }
 }

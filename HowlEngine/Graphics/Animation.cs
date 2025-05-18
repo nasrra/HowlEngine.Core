@@ -8,19 +8,19 @@ public class Animation{
     /// The texture regions that make up the frames of this animation.
     /// The order of the regions stored is the order they are displayed in.
     /// </summary>
-    public List<TextureRegion> frames {get;set;}
+    public List<TextureRegion> Frames {get;set;}
 
     /// <summary>
     /// The amount of time to delay between each frame, in milliseconds, before moving to the next frame.
     /// </summary>
-    public TimeSpan interval {get;set;}
+    public TimeSpan Interval {get;set;}
 
     /// <summary>
     /// Creates a new animation.
     /// </summary>
     public Animation(){
-        frames = new List<TextureRegion>();
-        interval = TimeSpan.FromMilliseconds(100);
+        Frames = new List<TextureRegion>();
+        Interval = TimeSpan.FromMilliseconds(100);
     }
 
     /// <summary>
@@ -29,7 +29,7 @@ public class Animation{
     /// <param name="frames">An ordered collection of the frames for this animation.</param>
     /// <param name="interval">The amount of time to delay between each frame, in milliseconds, before moving to the next frame.</param>
     public Animation(List<TextureRegion> frames, TimeSpan interval){
-        this.frames = frames;
-        this.interval = interval;
+        Frames = frames;
+        Interval = interval;
     }
 }

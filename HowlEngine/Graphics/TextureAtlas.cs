@@ -18,7 +18,7 @@ public class TextureAtlas{
     /// <summary>
     /// Gets or Sets the source texture represented by this texture atlas.
     /// </summary>
-    public Texture2D texture {get; set;}
+    public Texture2D Texture {get; set;}
 
     /// <summary>
     /// Creates a new texture atlas.
@@ -33,7 +33,7 @@ public class TextureAtlas{
     /// </summary>
     /// <param name="texture">The source texture represented by this texture atlas.</param>
     public TextureAtlas(Texture2D texture){
-        this.texture = texture;
+        Texture = texture;
         _regions = new Dictionary<string, TextureRegion>();
         _animations = new Dictionary<string, Animation>();
     }
@@ -47,7 +47,7 @@ public class TextureAtlas{
     /// <param name="width">The width, in pixels, of the region.</param>
     /// <param name="height">The height, in pixels, of the region.</param>
     public void AddRegion(string name, int x, int y, int width, int height){
-        TextureRegion region = new TextureRegion(texture, x, y, width, height);
+        TextureRegion region = new TextureRegion(Texture, x, y, width, height);
         _regions.Add(name, region);
     }
 
@@ -116,7 +116,7 @@ public class TextureAtlas{
                     // The <Texture> element contains the content path for the Texture2D to load.
                     // It is retrieved to then use the content manager to load the texture.
                     string texturePath = root.Element("FilePath").Value;
-                    atlas.texture = content.Load<Texture2D>(texturePath);
+                    atlas.Texture = content.Load<Texture2D>(texturePath);
 
                     // =================================================================================
                     // The <Regions> element contains individual <Region> elements, each one describing

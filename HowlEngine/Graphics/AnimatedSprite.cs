@@ -12,12 +12,12 @@ public class AnimatedSprite : Sprite{
     private TimeSpan _elapsedTime = new TimeSpan();
     private Animation _animation;
 
-    public Animation animation{
+    public Animation Animation{
         get => _animation;
         set {
             _animation = value;
             // set the currentr region to be thef irst frame of the animation.
-            textureRegion = _animation.frames[0];
+            TextureRegion = _animation.Frames[0];
         }
     }
 
@@ -31,7 +31,7 @@ public class AnimatedSprite : Sprite{
     /// </summary>
     /// <param name="animation">The animation to start playing.</param>
     public AnimatedSprite(Animation animation){
-        this.animation = animation;
+        this.Animation = animation;
     }
 
     /// <summary>
@@ -40,10 +40,10 @@ public class AnimatedSprite : Sprite{
     /// <param name="gameTime">The current game timing values provided by monogame.</param>
     public void Update(GameTime gameTime){
         _elapsedTime += gameTime.ElapsedGameTime;
-        if(_elapsedTime >= _animation.interval){
-            _elapsedTime -= _animation.interval;
-            _currentFame = _currentFame >= animation.frames.Count-1? 0 : _currentFame +=1;
-            textureRegion = _animation.frames[_currentFame];
+        if(_elapsedTime >= _animation.Interval){
+            _elapsedTime -= _animation.Interval;
+            _currentFame = _currentFame >= Animation.Frames.Count-1? 0 : _currentFame +=1;
+            TextureRegion = _animation.Frames[_currentFame];
         }
     }
 }

@@ -10,22 +10,22 @@ public class TextureRegion{
     /// <summary>
     /// Gets or Sets the source texture this region is part of.
     /// </summary>
-    public Texture2D texture {get; set;}
+    public Texture2D Texture {get; set;}
 
     /// <summary>
     /// Gets or Sets the source rectangle boundary of this texture region within the source texture.
     /// </summary>
-    public Rectangle sourceRect {get; set;}
+    public Rectangle SourceRect {get; set;}
 
     /// <summary>
     /// Gets the width, in pixels, of this texture region.
     /// </summary>
-    public int width => sourceRect.Width;
+    public int Width => SourceRect.Width;
 
     /// <summary>
     /// Gets the height, in pixels, of this texture region.
     /// </summary>
-    public int height => sourceRect.Height;
+    public int Height => SourceRect.Height;
 
     /// <summary>
     /// Creates a new texture region using the specified source texture.
@@ -41,8 +41,8 @@ public class TextureRegion{
     /// <param name="width">The width, in pixels, of this texture region.</param>
     /// <param name="height">The height, in pixels, of this texture region.</param>
     public TextureRegion(Texture2D texture, int x, int y, int width, int height){
-        this.texture = texture;
-        sourceRect = new Rectangle(x, y, width, height);
+        Texture = texture;
+        SourceRect = new Rectangle(x, y, width, height);
     }
 
     /// <summary>
@@ -102,9 +102,9 @@ public class TextureRegion{
     /// <param name="layer">The sorting layer to use when drawing this texture region.</param>
     public void Draw(SpriteBatch spriteBatch, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects spriteEffects, float layer){
         spriteBatch.Draw(
-            texture,
+            Texture,
             position,
-            sourceRect,
+            SourceRect,
             color,
             rotation,
             origin,
