@@ -6,13 +6,10 @@ using Microsoft.Xna.Framework.Graphics;
 namespace HowlEngine;
 
 public class HowlApp : Game {
-
-    internal static HowlApp s_instance;
-
     /// <summary>
     /// Gets a reference to the app instance.
     /// </summary>
-    public static HowlApp Instance => s_instance;
+    public static HowlApp Instance {get;private set;}
 
     /// <summary>
     /// Gets the graphics device manager to control the presentation of graphics.
@@ -34,28 +31,28 @@ public class HowlApp : Game {
     /// </summary>
     public static new ContentManager Content { get; private set; }
 
-    public HowlApp(string _title, int _width, int _height, bool _full_screen, bool _mouse_visible) {
+    public HowlApp(string title, int width, int height, bool fullScreen, bool mouseVisible) {
 
         // Ensure that only one app can be running.
-        if (s_instance != null) {
-            throw new InvalidOperationException($"[ERROR] Only a single HowlApp instance can be created");
+        if (Instance != null) {
+            throw new InvalidOperationException($"Only a single HowlApp instance can be created");
         }
 
-        s_instance = this;
+        Instance = this;
 
         // Create a new graphics device manager.
         Graphics = new GraphicsDeviceManager(this);
 
         // Set the graphics defaults.
-        Graphics.PreferredBackBufferWidth = _width;
-        Graphics.PreferredBackBufferHeight = _height;
-        Graphics.IsFullScreen = _full_screen;
+        Graphics.PreferredBackBufferWidth = width;
+        Graphics.PreferredBackBufferHeight = height;
+        Graphics.IsFullScreen = fullScreen;
 
         // Apply changes.
         Graphics.ApplyChanges();
 
         // Set the window title
-        Window.Title = _title;
+        Window.Title = title;
 
         // Set the content manager to reference the base Game's
         // content manager.
@@ -64,7 +61,7 @@ public class HowlApp : Game {
         // Set the root directory for content.
         Content.RootDirectory = "Content";
 
-        IsMouseVisible = _mouse_visible;
+        IsMouseVisible = mouseVisible;
     }
 
     protected override void Initialize(){
