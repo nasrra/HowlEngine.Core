@@ -1,7 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
 using Microsoft.Xna.Framework;
@@ -11,7 +12,8 @@ using Microsoft.Xna.Framework.Graphics;
 namespace HowlEngine.Graphics;
 
 public class TextureAtlas{
-    private Dictionary<string, TextureRegion> regions;
+    private Dictionary<string, TextureRegion> _regions;
+    private Dictionary<string, Animation> _animations;
 
     /// <summary>
     /// Gets or Sets the source texture represented by this texture atlas.
@@ -22,16 +24,18 @@ public class TextureAtlas{
     /// Creates a new texture atlas.
     /// </summary>
     public TextureAtlas(){
-        regions = new Dictionary<string, TextureRegion>();
+        _regions = new Dictionary<string, TextureRegion>();
+        _animations = new Dictionary<string, Animation>();
     }
 
     /// <summary>
     /// Creates a new texture atlas instance using the given texture.
     /// </summary>
-    /// <param name="_texture">The source texture represented by this texture atlas.</param>
+    /// <param name="texture">The source texture represented by this texture atlas.</param>
     public TextureAtlas(Texture2D texture){
         this.texture = texture;
-        regions = new Dictionary<string, TextureRegion>();
+        _regions = new Dictionary<string, TextureRegion>();
+        _animations = new Dictionary<string, Animation>();
     }
 
     /// <summary>
@@ -44,7 +48,7 @@ public class TextureAtlas{
     /// <param name="height">The height, in pixels, of the region.</param>
     public void AddRegion(string name, int x, int y, int width, int height){
         TextureRegion region = new TextureRegion(texture, x, y, width, height);
-        regions.Add(name, region);
+        _regions.Add(name, region);
     }
 
     /// <summary>
@@ -53,7 +57,7 @@ public class TextureAtlas{
     /// <param name="name">The name of the region to retrieve.</param>
     /// <returns>The TextureRegion with the specified name.</returns>
     public TextureRegion GetRegion(string name){
-        return regions[name];
+        return _regions[name];
     }
 
     /// <summary>
@@ -62,14 +66,41 @@ public class TextureAtlas{
     /// <param name="name">The name of the region to remove.</param>
     /// <returns></returns>
     public bool RemoveRegion(string name){
-        return regions.Remove(name);
+        return _regions.Remove(name);
     }
 
     /// <summary>
     /// Removes all regions from this texture atlas.
     /// </summary>
     public void Clear(){
-        regions.Clear();
+        _regions.Clear();
+    }
+
+    /// <summary>
+    /// Adds the given animation to this texture atlas witht the specified name.
+    /// </summary>
+    /// <param name="animationName">The name of the animation.</param>
+    /// <param name="animation">The animation to add.</param>
+    public void AddAnimation(string animationName, Animation animation){
+        _animations.Add(animationName, animation);
+    }
+
+    /// <summary>
+    /// Gets the animation from this texture atlas with a specified name.
+    /// </summary>
+    /// <param name="animationName">The name of the animation.</param>
+    /// <returns></returns>
+    public Animation GetAnimation(string animationName){
+        return _animations[animationName];
+    }
+
+    /// <summary>
+    /// Remoes the animation from this texture atlas with a specified name.
+    /// </summary>
+    /// <param name="animationName">The name of the animation.</param>
+    /// <returns>true if the animation was successfully removed.</returns>
+    public bool RemoveAnimation(string animationName){
+        return _animations.Remove(animationName);
     }
 
     public static TextureAtlas FromFile(ContentManager content, string fileName){
@@ -84,10 +115,23 @@ public class TextureAtlas{
 
                     // The <Texture> element contains the content path for the Texture2D to load.
                     // It is retrieved to then use the content manager to load the texture.
-                    string texture_path = root.Element("Texture").Value;
-                    atlas.texture = content.Load<Texture2D>(texture_path);
+                    string texturePath = root.Element("FilePath").Value;
+                    atlas.texture = content.Load<Texture2D>(texturePath);
 
-                    // Read all region data and create classes from said data.
+                    // =================================================================================
+                    // The <Regions> element contains individual <Region> elements, each one describing
+                    // a different texture region within the atlas.  
+                    //
+                    // Example:
+                    // <Regions>
+                    //      <Region name="spriteOne" x="0" y="0" width="32" height="32" />
+                    //      <Region name="spriteTwo" x="32" y="0" width="32" height="32" />
+                    // </Regions>
+                    //
+                    // So we retrieve all of the <Region> elements then loop through each one
+                    // and generate a new TextureRegion instance from it and add it to this atlas.
+                    // =================================================================================
+
                     IEnumerable<XElement> regions = root.Element("Regions")?.Elements("Region");
                     if(regions != null){
                         foreach(XElement region in regions){
@@ -103,12 +147,50 @@ public class TextureAtlas{
                         }
                     }
 
+                    // =======================================================================================
+                    // The <Animations> element contains individual <Animation> elements, each one describing
+                    // a different animation within the atlas.
+                    //
+                    // Example:
+                    // <Animations>
+                    //      <Animation name="animation" interval="100">
+                    //          <Frame region="spriteOne" />
+                    //          <Frame region="spriteTwo" />
+                    //      </Animation>
+                    // </Animations>
+                    //
+                    // So we retrieve all of the <Animation> elements then loop through each one
+                    // and generate a new Animation instance from it and add it to this atlas.
+                    // =======================================================================================
+
+                    IEnumerable<XElement> animations = root.Element("Animations")?.Elements("Animation");
+                    if(animations != null){
+                        foreach(XElement animation in animations){
+                            string name = animation.Attribute("name")?.Value;
+                            TimeSpan interval = TimeSpan.FromMilliseconds(float.Parse(animation.Attribute("interval")?.Value ?? "0"));
+                            // TimeSpan interval = TimeSpan.FromSeconds(int.Parse(animation.Attribute("interval")?.Value ?? "0"));
+                            List<TextureRegion> textureRegions = new List<TextureRegion>();
+                            IEnumerable<XElement> frames = animation.Elements("Frame");
+                            if(frames != null){
+                                foreach(XElement frame in frames){
+                                    textureRegions.Add(atlas.GetRegion(frame.Attribute("region")?.Value));
+                                }
+                            }
+                            atlas.AddAnimation(
+                                name,
+                                new Animation(textureRegions, interval)
+                            );
+                        }
+                    }
+
                     return atlas;
                 }
             }
         }
         catch(Exception e){
+            // #if DEBUG
             // Console.WriteLine(e.ToString());
+            // #endif
             throw new Exception(e.ToString());
         }
     }
@@ -119,7 +201,15 @@ public class TextureAtlas{
     /// <param name="regionName">The name of the region to create the sprite with.</param>
     /// <returns>A new Sprite using the texture region witht the specified name.</returns>
     public Sprite CreateSprite(string regionName){
-        TextureRegion region = GetRegion(regionName);
-        return new Sprite(region);
+        return new Sprite(GetRegion(regionName));
+    }
+
+    /// <summary>
+    /// Creates a new sprite using the animation from this texture atlas with the specified name.
+    /// </summary>
+    /// <param name="animationName">the name of the animation to creat the sprite with.</param>
+    /// <returns></returns>
+    public AnimatedSprite CreateAnimatedSprite(string animationName){
+        return new AnimatedSprite(GetAnimation(animationName));
     }
 }

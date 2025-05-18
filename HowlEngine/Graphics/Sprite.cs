@@ -1,4 +1,5 @@
-using System.Net.NetworkInformation;
+
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -58,9 +59,9 @@ public class Sprite{
     /// <summary>
     /// Creates a new sprite  using the specified source texture region.
     /// </summary>
-    /// <param name="_textureRegion">The texture region to use as the source texture when rendering.</param>
-    public Sprite(TextureRegion _textureRegion){
-        textureRegion = _textureRegion;
+    /// <param name="textureRegion">The texture region to use as the source texture when rendering.</param>
+    public Sprite(TextureRegion textureRegion){
+        this.textureRegion = textureRegion;
     }
 
     /// <summary>
