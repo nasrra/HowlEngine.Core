@@ -37,7 +37,13 @@ public class HowlApp : Game {
     /// </summary>
     public static InputManager Input {get; private set;}
 
+    /// <summary>
+    /// The time taken between the previous and current frame.
+    /// </summary>
     public static float DeltaTime{get; private set;}
+
+    // debug purposes.
+    public Texture2D DebugTexture{get; private set;}
 
     public HowlApp(string title, int width, int height, bool fullScreen, bool mouseVisible) {
 
@@ -84,6 +90,9 @@ public class HowlApp : Game {
         
         // Create a new input manager.
         Input = new InputManager();
+
+        DebugTexture = new Texture2D(GraphicsDevice, 1, 1);
+        DebugTexture.SetData([Color.White]);
 	}
 
     protected override void Update(GameTime gameTime){
