@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using HowlEngine.Collections;
 
 namespace HowlEngine.ECS;
 
@@ -19,56 +21,120 @@ public class StructPool<T> where T : struct{
     private Stack<int> _freeSlots;
 
     /// <summary>
+    /// Gets or the total number, both active and inactive, of elements the internal data structure.
+    /// </summary>
+    public int Capacity => _slots.Length;
+
+    /// <summary>
+    /// Gets or the total number of active elemnts in the internal data stucture.
+    /// </summary>
+    public int Count {get; private set;} = 0;
+
+    /// <summary>
     /// Creates a new StructPool.
     /// </summary>
     /// <param name="size">The length of the internal array of this StructPool.</param>
     public StructPool(int size){
         _slots = new Slot[size];
-        _freeSlots = new Stack<int>();
+        _freeSlots = new Stack<int>(Enumerable.Range(0,size));
     }
 
     /// <summary>
     /// Assigns a free slot in the StructPool to be available for usage.
     /// </summary>
-    /// <returns>A new handle to access the data within the slot.</returns>
-    public Handle Allocate(){
+    /// <returns>A new token to access the data within the slot.</returns>
+    public Token Allocate(){
         if(_freeSlots.Count == 0){
-            Console.WriteLine($"[StructPool]: Max Amount of {typeof(T).Name} ({_slots.Length}) reached!");
+            Console.WriteLine($"[WARNING]: Max Amount of {typeof(T).Name} ({_slots.Length}) reached!");
+            return new Token();
         }
         
         // get the latest free slot.
         int index = _freeSlots.Pop();
-        Slot slot = _slots[index];
+        ref Slot slot = ref _slots[index];
         
         // set the slot to active to be put into the game loop.
         slot.Active = true;
-        // increment the generation to avoid reuse and id bugs.
-        slot.Gen += 1;
 
-        return new Handle(index, slot.Gen);
+        Count++;
+        return new Token(index, slot.Gen);
     }
 
     /// <summary>
     /// Removes an available slot in the StructPool, freeing it for later resauge. 
     /// </summary>
-    /// <param name="handle">The specidifed Handle to access the slot.</param>
-    public void Free(ref Handle handle){
+    /// <param name="token">The specidifed Token to access the slot.</param>
+    public void Free(ref Token token){
+        Free(token.Id);
+    }
+
+    /// <summary>
+    /// Removes an available slot in the StructPool, freeing it for later resauge. 
+    /// </summary>
+    /// <param name="token">The specidifed Token to access the slot.</param>
+    public void Free(int id){
+        if(_freeSlots.Count == _slots.Length){
+            Console.WriteLine($"[WARNING]: StructPool {typeof(T).Name} has reached zero!");
+            return;
+        }
         // get the slot.
-        Slot slot = _slots[handle.Id];
+        ref Slot slot = ref _slots[id];
         
         // remove the slot from the game loop.
         slot.Active = false;
 
+        // increment the generation to avoid reuse and id bugs.
+        slot.Gen += 1;
+
+        Count--;
+
         // append the slot to free slots for reuse.
-        _freeSlots.Push(handle.Id);
+        _freeSlots.Push(id);
+    }
+
+
+
+
+    /// <summary>
+    /// Gets the data within the internal data structure.
+    /// </summary>
+    /// <param name="token">The specified token to try and recieve data from.</param>
+    /// <returns>A RefView with a reference to retrieved data.</returns>
+    public RefView<T> TryGetData(ref Token token){
+        ref Slot slot = ref _slots[token.Id];
+        if (slot.Gen == token.Gen){
+            return new RefView<T>(ref slot.Data, true);
+        }
+        else{
+            return default;
+        }
     }
 
     /// <summary>
-    /// 
+    /// Gets the data within a slot.
     /// </summary>
-    /// <param name="handle">The specified Handle to access the slot.</param>
+    /// <param name="slotIndex">The specified index in the internal array to access the slot.</param>
     /// <returns>A reference to the data stored in the slot.</returns>
-    public ref T Get(ref Handle handle){
-        return ref _slots[handle.Id].Data;
+    public ref T GetData(int slotIndex){
+        return ref _slots[slotIndex].Data;
     }
+
+    /// <summary>
+    /// Checks if a slot is currently free or active.
+    /// </summary>
+    /// <param name="slotIndex"></param>
+    /// <returns>true if the slot is currently active; otherwise false.</returns>
+    public bool IsSlotActive(int slotIndex){
+        return _slots[slotIndex].Active;
+    }
+
+    /// <summary>
+    /// Gets the data within a slot.
+    /// </summary>
+    /// <param name="token">The specified Token to access the slot.</param>
+    /// <returns>A reference to the data stored in the slot.</returns>
+    // public ref T GetData(ref Token token){
+    //     ref Slot slot = ref _slots[token.Id];
+    //     return ref _slots[token.Id].Data;
+    // }
 }

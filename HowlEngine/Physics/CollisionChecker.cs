@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using HowlEngine.Collections;
+using HowlEngine.ECS;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Physics;
 
@@ -18,16 +21,33 @@ namespace HowlEngine.Physics;
 
 public class CollisionChecker{
     
-
-    List<RectangleColliderStruct> aabbStructs = new List<RectangleColliderStruct>();
+    StructPool<RectangleColliderStruct> aabbStructs = new StructPool<RectangleColliderStruct>(10);
+    
+    // List<RectangleColliderStruct> aabbStructs = new List<RectangleColliderStruct>();
     List<RectangleColliderClass> aabbClass = new List<RectangleColliderClass>();
 
     public void AddAABBClass(RectangleColliderClass r){
         aabbClass.Add(r);
     }
 
-    public void AddAABBStruct(RectangleColliderStruct r){
-        aabbStructs.Add(r);
+    public Token AddAABBStruct(RectangleColliderStruct r){
+        // allocate.
+        Token token = aabbStructs.Allocate();
+        if(token.Valid == false){
+            return token;
+        }
+
+        // set data.
+        aabbStructs.TryGetData(ref token).Data = r;
+        return token;
+    }
+
+    public void RemoveAABBStruct(int index){
+        aabbStructs.Free(index);
+    }
+
+    public void RemoveAABBStructLast(){
+        aabbStructs.Free(aabbStructs.Count - 1);
     }
 
     public void CheckCollisionsClass(){
@@ -44,19 +64,48 @@ public class CollisionChecker{
 
     // check distance then start the AABB Collision check.
     public void CheckCollisionsStruct(){
-        Span<RectangleColliderStruct> span = CollectionsMarshal.AsSpan(aabbStructs);
-        for(int i = 0; i < span.Length; i++){
-            ref RectangleColliderStruct r1 = ref span[i];
-            for(int j = 0; j < span.Length; j++){
-                if(j==i){
+        for(int i = 0; i < aabbStructs.Capacity; i++){
+            // pass the slot if it is not in use.
+            if(aabbStructs.IsSlotActive(i) == false){
+                continue;
+            }
+            ref RectangleColliderStruct r1 = ref aabbStructs.GetData(i);
+            for(int j = 0; j < aabbStructs.Capacity; j++){
+                // pass the slot if it is not in use or is the current collider.
+                if(j==1 || aabbStructs.IsSlotActive(j) == false){
                     continue;
                 }
-                ref RectangleColliderStruct r2 = ref span[j];
-                AABBStruct(ref r1, ref span[j]);
+                ref RectangleColliderStruct r2 = ref aabbStructs.GetData(j);
+                AABBStruct(ref r1, ref r2);
             }
         }
     }
 
+    public void UpdatePosition(ref Token token, int x, int y){
+        RefView<RectangleColliderStruct> rf = aabbStructs.TryGetData(ref token);
+        if(rf.Valid== false){
+            return;
+        }
+        ref RectangleColliderStruct box = ref rf.Data;
+        box.X = x;
+        box.Y = y;
+    }
+
+    public void DrawOutline(ref Token token, SpriteBatch spriteBatch, Color color, int thickness){
+        RefView<RectangleColliderStruct> rf = aabbStructs.TryGetData(ref token);
+        if(rf.Valid == false){
+            return;
+        }
+        ref RectangleColliderStruct box = ref rf.Data;
+        // Top.
+        spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Y, box.Width, thickness), color);
+        // Left.
+        spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Y, thickness, box.Height), color);
+        // Right.
+        spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.Right-thickness, box.Y, thickness, box.Height), color);
+        // Bot.
+        spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Bottom-thickness, box.Width, thickness), color);
+    }
 
     //========================================================================================
     // When using AABB collision detection, there are four conditions that must be true

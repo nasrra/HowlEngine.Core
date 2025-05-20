@@ -173,18 +173,4 @@ public struct RectangleColliderStruct{
     public RectangleColliderStruct(int x, int y, int width, int height){
         _rectangle = new Rectangle(x,y,width,height);
     }
-
-    // public void DrawOutline(SpriteBatch spriteBatch, Color color, int thickness){
-    //     // Top.
-    //     spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(X, Y, Width, thickness), color);
-
-    //     // Left.
-    //     spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(X, Y, thickness, Height), color);
-
-    //     // Right.
-    //     spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(_rectangle.Right-thickness, Y, thickness, Height), color);
-
-    //     // Bot.
-    //     spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(X, _rectangle.Bottom-thickness, Width, thickness), color);
-    // }
 }
