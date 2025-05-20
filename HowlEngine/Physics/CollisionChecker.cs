@@ -91,12 +91,30 @@ public class CollisionChecker{
         box.Y = y;
     }
 
+    public void DrawAllOutlines(SpriteBatch spriteBatch, Color color, int thickness){
+        for(int i = 0; i < aabbStructs.Capacity; i++){
+            if(aabbStructs.IsSlotActive(i)==false){
+                return;
+            }
+            DrawOutline(ref aabbStructs.GetData(i), spriteBatch, color, thickness);
+        }
+    }
+
+    public void DrawOutline(ref Token[] tokens, SpriteBatch spriteBatch, Color color, int thickness){
+        for(int i = 0; i < tokens.Length; i++){
+            DrawOutline(ref tokens[i], spriteBatch, color, thickness);
+        }
+    }
+
     public void DrawOutline(ref Token token, SpriteBatch spriteBatch, Color color, int thickness){
         RefView<RectangleColliderStruct> rf = aabbStructs.TryGetData(ref token);
         if(rf.Valid == false){
             return;
         }
-        ref RectangleColliderStruct box = ref rf.Data;
+        DrawOutline(ref rf.Data,spriteBatch,color, thickness);
+    }
+
+    private void DrawOutline(ref RectangleColliderStruct box, SpriteBatch spriteBatch, Color color, int thickness){
         // Top.
         spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Y, box.Width, thickness), color);
         // Left.
