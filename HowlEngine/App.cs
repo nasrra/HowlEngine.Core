@@ -42,6 +42,9 @@ public class HowlApp : Game {
     /// </summary>
     public static float DeltaTime{get; private set;}
 
+    private static float _fixedUpdateCounter = 0.0f;
+    private static float _fixedDeltaTime = 0.0166667f; // update the physics loop at 60hz;
+
     // debug purposes.
     public Texture2D DebugTexture{get; private set;}
 
@@ -98,7 +101,20 @@ public class HowlApp : Game {
     protected override void Update(GameTime gameTime){
         Input.Update(gameTime);
         DeltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        
+
+        _fixedUpdateCounter += DeltaTime;
+        while(_fixedUpdateCounter >= _fixedDeltaTime){
+            FixedUpdate(gameTime);
+            _fixedUpdateCounter -= _fixedDeltaTime;
+        }
+
         base.Update(gameTime);
+    }
+
+
+    protected virtual void FixedUpdate(GameTime gameTime){
+        
     }
 
     protected void SetFrameRate(float frameRate){

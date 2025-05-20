@@ -19,6 +19,44 @@ namespace HowlEngine.Physics;
 public class CollisionChecker{
     
 
+    List<RectangleColliderStruct> aabbStructs = new List<RectangleColliderStruct>();
+    List<RectangleColliderClass> aabbClass = new List<RectangleColliderClass>();
+
+    public void AddAABBClass(RectangleColliderClass r){
+        aabbClass.Add(r);
+    }
+
+    public void AddAABBStruct(RectangleColliderStruct r){
+        aabbStructs.Add(r);
+    }
+
+    public void CheckCollisionsClass(){
+        for(int i = 0; i < aabbClass.Count; i++){
+            RectangleColliderClass r1 = aabbClass[i];
+            for(int j = 0; j < aabbClass.Count; j++){
+                if(j==i){
+                    continue;
+                }
+                AABBClass(r1, aabbClass[j]);
+            }
+        }
+    }
+
+    // check distance then start the AABB Collision check.
+    public void CheckCollisionsStruct(){
+        Span<RectangleColliderStruct> span = CollectionsMarshal.AsSpan(aabbStructs);
+        for(int i = 0; i < span.Length; i++){
+            ref RectangleColliderStruct r1 = ref span[i];
+            for(int j = 0; j < span.Length; j++){
+                if(j==i){
+                    continue;
+                }
+                ref RectangleColliderStruct r2 = ref span[j];
+                AABBStruct(ref r1, ref span[j]);
+            }
+        }
+    }
+
 
     //========================================================================================
     // When using AABB collision detection, there are four conditions that must be true
@@ -45,7 +83,15 @@ public class CollisionChecker{
     /// <param name="boxA">The bounding box for the first structure.</param>
     /// <param name="boxB">The bounding box for the second structure.</param>
     /// <returns>true, if the two boxes are colliding; otherwise false.</returns>
-    public bool AABB(RectangleCollider boxA, RectangleCollider boxB){
+    public bool AABBClass(RectangleColliderClass boxA, RectangleColliderClass boxB){
+        return 
+            boxA.Left < boxB.Right &&
+            boxA.Right > boxB.Left &&
+            boxA.Top < boxB.Bottom &&
+            boxA.Bottom > boxB.Top;
+    }
+
+    public bool AABBStruct(ref RectangleColliderStruct boxA, ref RectangleColliderStruct boxB){
         return 
             boxA.Left < boxB.Right &&
             boxA.Right > boxB.Left &&
