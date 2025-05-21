@@ -19,70 +19,105 @@ namespace HowlEngine.Physics;
 //
 //==========================================================================================
 
-public class CollisionChecker{
-    
-    StructPool<RectangleColliderStruct> aabbStructs = new StructPool<RectangleColliderStruct>(10);
-    
-    // List<RectangleColliderStruct> aabbStructs = new List<RectangleColliderStruct>();
-    List<RectangleColliderClass> aabbClass = new List<RectangleColliderClass>();
+public class AABBPhysicSystem{
+    private StructPool<PhysicsBodyAABB> physicsBodies; 
+    private StructPool<RectangleColliderStruct> staticBodies;    
 
-    public void AddAABBClass(RectangleColliderClass r){
-        aabbClass.Add(r);
+    public AABBPhysicSystem(int staticColliderAmount, int physicsBodyAmount){
+        staticBodies = new StructPool<RectangleColliderStruct>(staticColliderAmount);
+        physicsBodies = new StructPool<PhysicsBodyAABB>(physicsBodyAmount);
     }
 
-    public Token AddAABBStruct(RectangleColliderStruct r){
+    public Token AddPyhsicsBody(PhysicsBodyAABB body){
         // allocate.
-        Token token = aabbStructs.Allocate();
+        Token token = physicsBodies.Allocate();
+        if(token.Valid == false){
+            return token;
+        }
+
+        physicsBodies.TryGetData(ref token).Data = body;
+        return token;
+    }
+
+    public Token AddStaticBody(RectangleColliderStruct body){
+        // allocate.
+        Token token = staticBodies.Allocate();
         if(token.Valid == false){
             return token;
         }
 
         // set data.
-        aabbStructs.TryGetData(ref token).Data = r;
+        staticBodies.TryGetData(ref token).Data = body;
         return token;
     }
 
-    public void RemoveAABBStruct(int index){
-        aabbStructs.Free(index);
+    public void RemoveStaticBody(int index){
+        staticBodies.Free(index);
     }
 
-    public void RemoveAABBStructLast(){
-        aabbStructs.Free(aabbStructs.Count - 1);
+    public void RemovePhysicsBody(int index){
+        physicsBodies.Free(index);
     }
 
-    public void CheckCollisionsClass(){
-        for(int i = 0; i < aabbClass.Count; i++){
-            RectangleColliderClass r1 = aabbClass[i];
-            for(int j = 0; j < aabbClass.Count; j++){
-                if(j==i){
-                    continue;
-                }
-                AABBClass(r1, aabbClass[j]);
-            }
-        }
+    public void RemoveLastStaticBody(){
+        staticBodies.Free(staticBodies.Count - 1);
+    }
+
+    public void RemoveLastPhysicsBody(){
+        physicsBodies.Free(physicsBodies.Count - 1);
     }
 
     // check distance then start the AABB Collision check.
-    public void CheckCollisionsStruct(){
-        for(int i = 0; i < aabbStructs.Capacity; i++){
+    public void CheckCollisions(){
+        for(int i = 0; i < staticBodies.Capacity; i++){
             // pass the slot if it is not in use.
-            if(aabbStructs.IsSlotActive(i) == false){
+            if(staticBodies.IsSlotActive(i) == false){
                 continue;
             }
-            ref RectangleColliderStruct r1 = ref aabbStructs.GetData(i);
-            for(int j = 0; j < aabbStructs.Capacity; j++){
+            ref RectangleColliderStruct r1 = ref staticBodies.GetData(i);
+            for(int j = 0; j < staticBodies.Capacity; j++){
                 // pass the slot if it is not in use or is the current collider.
-                if(j==1 || aabbStructs.IsSlotActive(j) == false){
+                if(j==1 || staticBodies.IsSlotActive(j) == false){
                     continue;
                 }
-                ref RectangleColliderStruct r2 = ref aabbStructs.GetData(j);
-                AABBStruct(ref r1, ref r2);
+                ref RectangleColliderStruct r2 = ref staticBodies.GetData(j);
+
+                // Update the CurrentFrameCollisions to account for said collision.
+                AABB(ref r1, ref r2);
             }
         }
     }
 
-    public void UpdatePosition(ref Token token, int x, int y){
-        RefView<RectangleColliderStruct> rf = aabbStructs.TryGetData(ref token);
+    public void FixedUpdate(GameTime gameTime){
+        for(int i = 0; i < physicsBodies.Capacity; i++){
+            // pass the slot ifit is not in use.
+            if(physicsBodies.IsSlotActive(i) == false){
+                continue;
+            }
+            ref PhysicsBodyAABB pA = ref physicsBodies.GetData(i);
+            float? timeOfImpact = null;
+            for(int j = 0; j < physicsBodies.Capacity; j++){
+                // pass if it is the current collider or the slot ifit is not in use.
+                if(j==i || physicsBodies.IsSlotActive(j) == false){
+                    continue;
+                }
+                ref PhysicsBodyAABB pB = ref physicsBodies.GetData(j);
+                float? newTimeOfImpact = SweptAABB(ref pA, ref pB);
+                timeOfImpact = newTimeOfImpact?? timeOfImpact;
+            }
+            if(timeOfImpact != null){
+                Console.WriteLine(1);
+                pA.Position += (Vector2)(pA.Velocity * timeOfImpact);
+            }
+            else{
+                pA.Position += pA.Velocity;
+            }
+        }
+    }
+
+
+    public void SetStaticBodyPosition(ref Token token, int x, int y){
+        RefView<RectangleColliderStruct> rf = staticBodies.TryGetData(ref token);
         if(rf.Valid== false){
             return;
         }
@@ -91,12 +126,29 @@ public class CollisionChecker{
         box.Y = y;
     }
 
+    public void SetPhysicsBodyVelocity(ref Token token, Vector2 velocity){
+        RefView<PhysicsBodyAABB> rf = GetPhysicsBody(ref token);
+        if(rf.Valid==false){
+            return;
+        }
+        ref PhysicsBodyAABB p = ref rf.Data;
+        p.Velocity = velocity;
+    }
+
     public void DrawAllOutlines(SpriteBatch spriteBatch, Color color, int thickness){
-        for(int i = 0; i < aabbStructs.Capacity; i++){
-            if(aabbStructs.IsSlotActive(i)==false){
+        for(int i = 0; i < staticBodies.Capacity; i++){
+            if(staticBodies.IsSlotActive(i)==false){
                 return;
             }
-            DrawOutline(ref aabbStructs.GetData(i), spriteBatch, color, thickness);
+            DrawOutline(ref staticBodies.GetData(i), spriteBatch, color, thickness);
+        }
+        for(int i = 0; i < physicsBodies.Capacity; i++){
+            if(physicsBodies.IsSlotActive(i)==false){
+                return;
+            }
+            ref PhysicsBodyAABB p = ref physicsBodies.GetData(i);
+            ref RectangleColliderStruct collider = ref p.Collider;
+            DrawOutline(ref collider, spriteBatch, color, thickness);
         }
     }
 
@@ -107,7 +159,7 @@ public class CollisionChecker{
     }
 
     public void DrawOutline(ref Token token, SpriteBatch spriteBatch, Color color, int thickness){
-        RefView<RectangleColliderStruct> rf = aabbStructs.TryGetData(ref token);
+        RefView<RectangleColliderStruct> rf = staticBodies.TryGetData(ref token);
         if(rf.Valid == false){
             return;
         }
@@ -123,6 +175,10 @@ public class CollisionChecker{
         spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.Right-thickness, box.Y, thickness, box.Height), color);
         // Bot.
         spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Bottom-thickness, box.Width, thickness), color);
+    }
+
+    public RefView<PhysicsBodyAABB> GetPhysicsBody(ref Token token){
+        return physicsBodies.TryGetData(ref token);
     }
 
     //========================================================================================
@@ -150,7 +206,7 @@ public class CollisionChecker{
     /// <param name="boxA">The bounding box for the first structure.</param>
     /// <param name="boxB">The bounding box for the second structure.</param>
     /// <returns>true, if the two boxes are colliding; otherwise false.</returns>
-    public bool AABBClass(RectangleColliderClass boxA, RectangleColliderClass boxB){
+    public bool AABB(ref RectangleColliderStruct boxA, ref RectangleColliderStruct boxB){
         return 
             boxA.Left < boxB.Right &&
             boxA.Right > boxB.Left &&
@@ -158,12 +214,157 @@ public class CollisionChecker{
             boxA.Bottom > boxB.Top;
     }
 
-    public bool AABBStruct(ref RectangleColliderStruct boxA, ref RectangleColliderStruct boxB){
-        return 
-            boxA.Left < boxB.Right &&
-            boxA.Right > boxB.Left &&
-            boxA.Top < boxB.Bottom &&
-            boxA.Bottom > boxB.Top;
+    // public float? SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
+        
+    //     // the relative velocity between the two physics bodies.
+    //     Vector2 relVel = pA.Velocity - pB.Velocity;
+    
+    //     // How far the body has to travel on the axis to just start touching the other body.
+    //     float entryX, entryY; 
+
+    //     // How far the body has to trvael on the axis to completely pass beyond the other body.
+    //     float exitX, exitY;
+
+    //     float entryTimeX = float.NegativeInfinity;
+    //     float entryTimeY = float.NegativeInfinity;
+    //     float exitTimeX = float.PositiveInfinity;
+    //     float exitTimeY = float.PositiveInfinity;
+
+    //     // if a body is moving in the x-direction.
+    //     // calculate the position to be considered a 'hit' and 'pass-through'.
+    //     if(relVel.X > 0){
+    //         entryX = pB.Left - pA.Right;
+    //         exitX = pB.Right - pA.Left;
+    //         entryTimeX = entryX / relVel.X;   
+    //         exitTimeX = exitX / relVel.X;
+    //     }
+    //     else{
+    //         entryX = pB.Right - pA.Left;
+    //         exitX = pB.Left - pA.Right;
+    //         entryTimeX = entryX / relVel.X;   
+    //         exitTimeX = exitX / relVel.X;
+    //     }
+
+    //     // if a body is moving in the y-direction.
+    //     // calculate the position to be considered a 'hit' and 'pass-through'.
+    //     if(relVel.Y > 0){
+    //         entryY = pB.Top - pA.Bottom;
+    //         exitY = pB.Bottom - pA.Top;
+    //         // distance / velocity = time.
+    //         entryTimeY = entryY / relVel.Y;
+    //         exitTimeY = exitY / relVel.Y;   
+    //     }
+    //     else if(relVel.Y < 0){
+    //         entryY = pB.Bottom - pA.Top;
+    //         exitY = pB.Top - pA.Bottom;
+    //         // distance / velocity = time.
+    //         entryTimeY = entryY / relVel.Y;   
+    //         exitTimeY = exitY / relVel.Y;   
+    //     }
+
+    //     // determine timings.
+    //     float entryTime = Math.Max(entryTimeX, entryTimeY);
+    //     float exitTime = Math.Min(exitTimeX, exitTimeY);
+
+    //     // if
+    //     // 1. already 'tunnelled' through the body.
+    //     // 2. there is no entry time.
+
+    //     Console.WriteLine($"{entryTime > exitTime} {entryTime < 0f} {entryTime > 1f}");
+    //     if(entryTime > exitTime || entryTime < 0f || entryTime > 1f){
+    //         // there has been no collision.
+    //         return null;
+    //     }
+    //     return entryTime;
+    // }
+
+    //
+    // SweptAABB:
+    // First pass:
+    //  Check to see if there will be a collision on any of the axis.
+    //  Retrieving a time value for when that colllision will occcur.
+    //
+    // Second Pass:
+    //  Verify that the collision is not just on one axes but both.
+    //  Performing an AABB collision check for the applied movement.
+    //  If there has been a collision, the movement is effected by the calculated time of impact.
+    //  If not, then the movement continues as normal.
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="pA"></param>
+    /// <param name="pB"></param>
+    /// <returns></returns>
+    public static float? SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
+        // get the relative velocity between both physics bodies.
+        Vector2 relVel = pA.Velocity - pB.Velocity;
+
+        // How far the body has to travel on the axes to start touching the other body.
+        float xEntry, yEntry;
+
+        // How far the body has travel on the axes to completely pass beyond the other body.
+        float xExit, yExit;
+
+        // if a body is moving the x-direction.
+        // calculate the position to be considered a 'hit' and 'pass through'
+        if (relVel.X > 0){
+            xEntry = pB.Left - pA.Right;
+            xExit = pB.Right - pA.Left;
+        }
+        else{
+            xEntry = pB.Right - pA.Left;
+            xExit = pB.Left - pA.Right;
+        }
+
+        // if a body is moving the x-direction.
+        // calculate the position to be considered a 'hit' and 'pass through'
+        if (relVel.Y > 0){
+            // Moving downward
+            yEntry = pB.Top - pA.Bottom;
+            yExit = pB.Bottom - pA.Top;
+        }
+        else{
+            // Moving upward
+            yEntry = pB.Bottom - pA.Top;
+            yExit = pB.Top - pA.Bottom;
+        }
+
+        // determine timings.
+        // distance / velocity = time.
+        float xEntryTime = (relVel.X == 0) ? float.NegativeInfinity : xEntry / relVel.X;
+        float xExitTime = (relVel.X == 0) ? float.PositiveInfinity : xExit / relVel.X;
+        float yEntryTime = (relVel.Y == 0) ? float.NegativeInfinity : yEntry / relVel.Y;
+        float yExitTime = (relVel.Y == 0) ? float.PositiveInfinity : yExit / relVel.Y;
+
+        // get the latest possible time of entry to ensure the body can move the full amount.
+        float entryTime = Math.Max(xEntryTime, yEntryTime);
+        // get the earliest possible time of exit to ensure the body can move the full amount.
+        float exitTime = Math.Min(xExitTime, yExitTime);
+
+        // Console.WriteLine($"{entryTime > exitTime} {entryTime < 0f} {entryTime > 1f}");
+        if (entryTime > exitTime || entryTime < 0f || entryTime > 1f)
+            return null; // no collision within this frame
+        
+        // calculate and check if there is an AABB overlap at the point of impact.
+        Vector2 pointOfImpact = pA.Position + pA.Velocity * entryTime;
+        RectangleColliderStruct movementA = new RectangleColliderStruct((int)pointOfImpact.X, (int)pointOfImpact.Y, pA.Width, pA.Height);
+        bool xOverlap = movementA.Right > pB.Left && movementA.Left < pB.Right;
+        bool yOverlap = movementA.Bottom > pB.Top && movementA.Top < pB.Bottom;
+
+        bool validOverlap = false;
+        if (xEntryTime > yEntryTime)
+            validOverlap = yOverlap;
+        else
+            validOverlap = xOverlap;
+
+        if (!validOverlap)
+            return null;
+
+        return entryTime;
     }
 
+    public bool SweptAABB(ref PhysicsBodyAABB pA, ref RectangleColliderStruct bB){
+        return false;
+    }
 }
