@@ -28,7 +28,12 @@ public class AABBPhysicSystem{
         physicsBodies = new StructPool<PhysicsBodyAABB>(physicsBodyAmount);
     }
 
-    public Token AddPyhsicsBody(PhysicsBodyAABB body){
+    /// <summary>
+    /// Allocates a PhysicsBody to the internal data structure.
+    /// </summary>
+    /// <param name="body"></param>
+    /// <returns>A Token to reference the newly allocated PhysicsBody.</returns>
+    public Token AllocatePyhsicsBody(PhysicsBodyAABB body){
         // allocate.
         Token token = physicsBodies.Allocate();
         if(token.Valid == false){
@@ -39,7 +44,12 @@ public class AABBPhysicSystem{
         return token;
     }
 
-    public Token AddStaticBody(RectangleColliderStruct body){
+    /// <summary>
+    /// Allocates a StaticBody to the internal data structure.
+    /// </summary>
+    /// <param name="body"></param>
+    /// <returns>A Token to reference the newly allocated StaticBody.</returns>
+    public Token AllocateStaticBody(RectangleColliderStruct body){
         // allocate.
         Token token = staticBodies.Allocate();
         if(token.Valid == false){
@@ -51,58 +61,74 @@ public class AABBPhysicSystem{
         return token;
     }
 
-    public void RemoveStaticBody(int index){
+    /// <summary>
+    /// Frees a StaticBody in the internal data structure at a given index.
+    /// </summary>
+    /// <param name="index">The specified index to free at.</param>
+    public void FreeStaticBody(int index){
         staticBodies.Free(index);
     }
 
-    public void RemovePhysicsBody(int index){
+    /// <summary>
+    /// Frees a PhysicsBody in the internal data structure at a given index.
+    /// </summary>
+    /// <param name="index">The specified index to free at.</param>
+    public void FreePhysicsBody(int index){
         physicsBodies.Free(index);
     }
 
-    public void RemoveLastStaticBody(){
+    /// <summary>
+    /// Frees the last allocated StaticBody within the internal data structure.
+    /// </summary>
+    public void FreeLastStaticBody(){
         staticBodies.Free(staticBodies.Count - 1);
     }
 
-    public void RemoveLastPhysicsBody(){
+    /// <summary>
+    /// Frees the last allocated PhysicsBody within the internal data structure.
+    /// </summary>
+    public void FreeLastPhysicsBody(){
         physicsBodies.Free(physicsBodies.Count - 1);
     }
 
-    // check distance then start the AABB Collision check.
-    public void CheckCollisions(){
-        for(int i = 0; i < staticBodies.Capacity; i++){
-            // pass the slot if it is not in use.
-            if(staticBodies.IsSlotActive(i) == false){
-                continue;
-            }
-            ref RectangleColliderStruct r1 = ref staticBodies.GetData(i);
-            for(int j = 0; j < staticBodies.Capacity; j++){
-                // pass the slot if it is not in use or is the current collider.
-                if(j==1 || staticBodies.IsSlotActive(j) == false){
-                    continue;
-                }
-                ref RectangleColliderStruct r2 = ref staticBodies.GetData(j);
-
-                // Update the CurrentFrameCollisions to account for said collision.
-                AABB(ref r1, ref r2);
-            }
-        }
-    }
-
+    /// <summary>
+    /// Updates the Physics loop for all stored PhysicsBodies in the internal data structure.
+    /// </summary>
+    /// <param name="gameTime"></param>
     public void FixedUpdate(GameTime gameTime){
         for(int i = 0; i < physicsBodies.Capacity; i++){
-            // pass the slot ifit is not in use.
+            
+            // pass the slot if its is not in use.
+            
             if(physicsBodies.IsSlotActive(i) == false){
                 continue;
             }
-            ref PhysicsBodyAABB pA = ref physicsBodies.GetData(i);
+
             float?[] timeOfImpact = null;
+
+            // the primary PhysicsBody to check collisions for.
+            
+            ref PhysicsBodyAABB pA = ref physicsBodies.GetData(i);
+            
+            // check collisions against all other physics bodies.
+            
             for(int j = 0; j < physicsBodies.Capacity; j++){
                 // pass if it is the current collider or the slot ifit is not in use.
+            
                 if(j==i || physicsBodies.IsSlotActive(j) == false){
                     continue;
                 }
+
+                // the secondary PhysicsBody to check a collision against.
+            
                 ref PhysicsBodyAABB pB = ref physicsBodies.GetData(j);
+
+                // Get the time of impact between the primary and secondary PhysicsBody.
+            
                 float?[] newTimeOfImpact = SweptAABB(ref pA, ref pB);
+                
+                // If there is a new time, calculate if it is less than the current time of impact.
+            
                 if(newTimeOfImpact != null){
                     if(timeOfImpact != null){
                         if(newTimeOfImpact[0] != null){
@@ -132,6 +158,10 @@ public class AABBPhysicSystem{
                     }
                 }
             }
+
+            // Apply the time of impact (if there is one) to the movement so we dont go into the other PhysicsBody.
+            // Otherwise continue the movement with the same velocity.
+
             if(timeOfImpact != null){
                 // Console.WriteLine("collision");
                 pA.Position += new Vector2(
@@ -145,7 +175,12 @@ public class AABBPhysicSystem{
         }
     }
 
-
+    /// <summary>
+    /// Sets the Position of a StaticBody within this physics system.
+    /// </summary>
+    /// <param name="token">The specified Token to reference a StaticBody within the internal data structure.</param>
+    /// <param name="x">The x-position to set the StaticBody to.</param>
+    /// <param name="y">The y-position to set the StaticBody to.</param>
     public void SetStaticBodyPosition(ref Token token, int x, int y){
         RefView<RectangleColliderStruct> rf = staticBodies.TryGetData(ref token);
         if(rf.Valid== false){
@@ -156,6 +191,11 @@ public class AABBPhysicSystem{
         box.Y = y;
     }
 
+    /// <summary>
+    /// Set the Velocity of a PhysicsBody within this physics system.
+    /// </summary>
+    /// <param name="token">The specified Token to reference a PhysicsBody within the internal data structure.</param>
+    /// <param name="velocity">The velocity to assign to the specified PhysicsBody.</param>
     public void SetPhysicsBodyVelocity(ref Token token, Vector2 velocity){
         RefView<PhysicsBodyAABB> rf = GetPhysicsBody(ref token);
         if(rf.Valid==false){
@@ -165,6 +205,12 @@ public class AABBPhysicSystem{
         p.Velocity = velocity;
     }
 
+    /// <summary>
+    /// Draws all outlines of every collider within this physics system.
+    /// </summary>
+    /// <param name="spriteBatch">The SpriteBatch to batch all draw calls in.</param>
+    /// <param name="color">The colour to draw the outline.</param>
+    /// <param name="thickness">The thickness of the outline.</param>
     public void DrawAllOutlines(SpriteBatch spriteBatch, Color color, int thickness){
         for(int i = 0; i < staticBodies.Capacity; i++){
             if(staticBodies.IsSlotActive(i)==false){
@@ -207,6 +253,12 @@ public class AABBPhysicSystem{
         spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Bottom-thickness, box.Width, thickness), color);
     }
 
+
+    /// <summary>
+    /// Gets a RefView to directly access a PhysicBody within this physics system.
+    /// </summary>
+    /// <param name="token">The Token used to retrieve the PhysicsBody from the internal data structure.</param>
+    /// <returns>A RefView of the retrieved data by the specified Token.</returns>
     public RefView<PhysicsBodyAABB> GetPhysicsBody(ref Token token){
         return physicsBodies.TryGetData(ref token);
     }
@@ -258,23 +310,28 @@ public class AABBPhysicSystem{
     //===========================================================================================
 
     /// <summary>
-    /// 
+    /// Calculates the time of impact between two physics bodies on the xy-axes.
     /// </summary>
-    /// <param name="pA"></param>
-    /// <param name="pB"></param>
-    /// <returns></returns>
+    /// <param name="pA">The PhysicsBody to calculate the time of impact for.</param>
+    /// <param name="pB">The PhysicsBody to check against.</param>
+    /// <returns>A nullable float array. Index zero being the x-axis and index one being the y-axis.</returns>
     public static float?[] SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
+        
         // get the relative velocity between both physics bodies.
+        
         Vector2 relVel = pA.Velocity - pB.Velocity;
 
         // How far the body has to travel on the axes to start touching the other body.
+        
         float xEntry, yEntry;
 
         // How far the body has travel on the axes to completely pass beyond the other body.
+        
         float xExit, yExit;
 
         // if a body is moving the x-direction.
         // calculate the position to be considered a 'hit' and 'pass through'
+        
         if (relVel.X > 0){
             xEntry = pB.Left - pA.Right;
             xExit = pB.Right - pA.Left;
@@ -286,39 +343,47 @@ public class AABBPhysicSystem{
 
         // if a body is moving the x-direction.
         // calculate the position to be considered a 'hit' and 'pass through'
+        
         if (relVel.Y > 0){
             // Moving downward
+            
             yEntry = pB.Top - pA.Bottom;
             yExit = pB.Bottom - pA.Top;
         }
         else{
             // Moving upward
+
             yEntry = pB.Bottom - pA.Top;
             yExit = pB.Top - pA.Bottom;
         }
 
-        // determine timings.
         // distance / velocity = time.
+        // determine timings.
+
         float xEntryTime = (relVel.X == 0) ? float.NegativeInfinity : xEntry / relVel.X;
         float xExitTime = (relVel.X == 0) ? float.PositiveInfinity : xExit / relVel.X;
         float yEntryTime = (relVel.Y == 0) ? float.NegativeInfinity : yEntry / relVel.Y;
         float yExitTime = (relVel.Y == 0) ? float.PositiveInfinity : yExit / relVel.Y;
 
         // get the latest possible time of entry to ensure the body can move the full amount.
-        float entryTime = Math.Max(xEntryTime, yEntryTime);
-        // get the earliest possible time of exit to ensure the body can move the full amount.
-        float exitTime = Math.Min(xExitTime, yExitTime);
 
-        // Console.WriteLine($"{entryTime > exitTime} {entryTime < 0f} {entryTime > 1f}");
+        float entryTime = Math.Max(xEntryTime, yEntryTime);
+
+        // get the earliest possible time of exit to ensure the body can move the full amount.
+
+        float exitTime = Math.Min(xExitTime, yExitTime);
+        
         if (entryTime > exitTime || entryTime < 0f || entryTime > 1f)
             return null; // no collision within this frame
         
         // calculate the effected movement from the supposed impact.
+        
         Vector2 pointOfImpact = pA.Position + pA.Velocity * entryTime;
         RectangleColliderStruct movementA = new RectangleColliderStruct((int)pointOfImpact.X, (int)pointOfImpact.Y, pA.Width, pA.Height);
         
         // Check if there is an AABB overlap at the point of impact.
         // If there is, it is a valid change in movement.
+        
         bool validOverlap = false;
         float?[] timeOfImpact = new float?[2];
         if (xEntryTime > yEntryTime){
