@@ -95,19 +95,49 @@ public class AABBPhysicSystem{
                 continue;
             }
             ref PhysicsBodyAABB pA = ref physicsBodies.GetData(i);
-            float? timeOfImpact = null;
+            float?[] timeOfImpact = null;
             for(int j = 0; j < physicsBodies.Capacity; j++){
                 // pass if it is the current collider or the slot ifit is not in use.
                 if(j==i || physicsBodies.IsSlotActive(j) == false){
                     continue;
                 }
                 ref PhysicsBodyAABB pB = ref physicsBodies.GetData(j);
-                float? newTimeOfImpact = SweptAABB(ref pA, ref pB);
-                timeOfImpact = newTimeOfImpact?? timeOfImpact;
+                float?[] newTimeOfImpact = SweptAABB(ref pA, ref pB);
+                if(newTimeOfImpact != null){
+                    if(timeOfImpact != null){
+                        if(newTimeOfImpact[0] != null){
+                            if(timeOfImpact[0] != null){
+                                float? x1 = timeOfImpact[0];
+                                float? x2 = newTimeOfImpact[0];
+                                timeOfImpact[0] = x1<x2? x1 : x2;
+                            }
+                            else{
+                                timeOfImpact[0] = newTimeOfImpact[0];
+                            }
+
+                        }
+                        if(newTimeOfImpact[1] != null){
+                            if(timeOfImpact[1] != null){
+                                float? y1 = timeOfImpact[1];
+                                float? y2 = newTimeOfImpact[1];
+                                timeOfImpact[1] = y1<y2? y1 : y2;
+                            }
+                            else{
+                                timeOfImpact[1] = newTimeOfImpact[1];
+                            }
+                        }
+                    }
+                    else{
+                        timeOfImpact = newTimeOfImpact;
+                    }
+                }
             }
             if(timeOfImpact != null){
-                Console.WriteLine(1);
-                pA.Position += (Vector2)(pA.Velocity * timeOfImpact);
+                // Console.WriteLine("collision");
+                pA.Position += new Vector2(
+                    (float)(timeOfImpact[0] != null? pA.Velocity.X * timeOfImpact[0] : pA.Velocity.X),
+                    (float)(timeOfImpact[1] != null? pA.Velocity.Y * timeOfImpact[1] : pA.Velocity.Y)
+                );
             }
             else{
                 pA.Position += pA.Velocity;
@@ -214,71 +244,7 @@ public class AABBPhysicSystem{
             boxA.Bottom > boxB.Top;
     }
 
-    // public float? SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
-        
-    //     // the relative velocity between the two physics bodies.
-    //     Vector2 relVel = pA.Velocity - pB.Velocity;
-    
-    //     // How far the body has to travel on the axis to just start touching the other body.
-    //     float entryX, entryY; 
-
-    //     // How far the body has to trvael on the axis to completely pass beyond the other body.
-    //     float exitX, exitY;
-
-    //     float entryTimeX = float.NegativeInfinity;
-    //     float entryTimeY = float.NegativeInfinity;
-    //     float exitTimeX = float.PositiveInfinity;
-    //     float exitTimeY = float.PositiveInfinity;
-
-    //     // if a body is moving in the x-direction.
-    //     // calculate the position to be considered a 'hit' and 'pass-through'.
-    //     if(relVel.X > 0){
-    //         entryX = pB.Left - pA.Right;
-    //         exitX = pB.Right - pA.Left;
-    //         entryTimeX = entryX / relVel.X;   
-    //         exitTimeX = exitX / relVel.X;
-    //     }
-    //     else{
-    //         entryX = pB.Right - pA.Left;
-    //         exitX = pB.Left - pA.Right;
-    //         entryTimeX = entryX / relVel.X;   
-    //         exitTimeX = exitX / relVel.X;
-    //     }
-
-    //     // if a body is moving in the y-direction.
-    //     // calculate the position to be considered a 'hit' and 'pass-through'.
-    //     if(relVel.Y > 0){
-    //         entryY = pB.Top - pA.Bottom;
-    //         exitY = pB.Bottom - pA.Top;
-    //         // distance / velocity = time.
-    //         entryTimeY = entryY / relVel.Y;
-    //         exitTimeY = exitY / relVel.Y;   
-    //     }
-    //     else if(relVel.Y < 0){
-    //         entryY = pB.Bottom - pA.Top;
-    //         exitY = pB.Top - pA.Bottom;
-    //         // distance / velocity = time.
-    //         entryTimeY = entryY / relVel.Y;   
-    //         exitTimeY = exitY / relVel.Y;   
-    //     }
-
-    //     // determine timings.
-    //     float entryTime = Math.Max(entryTimeX, entryTimeY);
-    //     float exitTime = Math.Min(exitTimeX, exitTimeY);
-
-    //     // if
-    //     // 1. already 'tunnelled' through the body.
-    //     // 2. there is no entry time.
-
-    //     Console.WriteLine($"{entryTime > exitTime} {entryTime < 0f} {entryTime > 1f}");
-    //     if(entryTime > exitTime || entryTime < 0f || entryTime > 1f){
-    //         // there has been no collision.
-    //         return null;
-    //     }
-    //     return entryTime;
-    // }
-
-    //
+    //===========================================================================================
     // SweptAABB:
     // First pass:
     //  Check to see if there will be a collision on any of the axis.
@@ -289,6 +255,7 @@ public class AABBPhysicSystem{
     //  Performing an AABB collision check for the applied movement.
     //  If there has been a collision, the movement is effected by the calculated time of impact.
     //  If not, then the movement continues as normal.
+    //===========================================================================================
 
     /// <summary>
     /// 
@@ -296,7 +263,7 @@ public class AABBPhysicSystem{
     /// <param name="pA"></param>
     /// <param name="pB"></param>
     /// <returns></returns>
-    public static float? SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
+    public static float?[] SweptAABB(ref PhysicsBodyAABB pA, ref PhysicsBodyAABB pB){
         // get the relative velocity between both physics bodies.
         Vector2 relVel = pA.Velocity - pB.Velocity;
 
@@ -346,22 +313,33 @@ public class AABBPhysicSystem{
         if (entryTime > exitTime || entryTime < 0f || entryTime > 1f)
             return null; // no collision within this frame
         
-        // calculate and check if there is an AABB overlap at the point of impact.
+        // calculate the effected movement from the supposed impact.
         Vector2 pointOfImpact = pA.Position + pA.Velocity * entryTime;
         RectangleColliderStruct movementA = new RectangleColliderStruct((int)pointOfImpact.X, (int)pointOfImpact.Y, pA.Width, pA.Height);
-        bool xOverlap = movementA.Right > pB.Left && movementA.Left < pB.Right;
-        bool yOverlap = movementA.Bottom > pB.Top && movementA.Top < pB.Bottom;
-
+        
+        // Check if there is an AABB overlap at the point of impact.
+        // If there is, it is a valid change in movement.
         bool validOverlap = false;
-        if (xEntryTime > yEntryTime)
-            validOverlap = yOverlap;
-        else
-            validOverlap = xOverlap;
+        float?[] timeOfImpact = new float?[2];
+        if (xEntryTime > yEntryTime){
+            if(movementA.Bottom > pB.Top && movementA.Top < pB.Bottom){
+                timeOfImpact[0] = entryTime;
+                timeOfImpact[1] = null;
+                validOverlap = true;
+            }
+        }
+        else{
+            if(movementA.Right > pB.Left && movementA.Left < pB.Right){
+                timeOfImpact[0] = null;
+                timeOfImpact[1] = entryTime;
+                validOverlap = true;
+            }
+        }
 
         if (!validOverlap)
             return null;
 
-        return entryTime;
+        return timeOfImpact;
     }
 
     public bool SweptAABB(ref PhysicsBodyAABB pA, ref RectangleColliderStruct bB){
