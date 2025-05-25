@@ -1,16 +1,72 @@
 using System;
-using System.Collections.Generic;
-
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Graphics;
 
-public class AnimatedSprite : Sprite{
-    private int _currentFame = 0;
-    private TimeSpan _elapsedTime = new TimeSpan();
-    private Animation _animation;
+public struct AnimatedSprite{
+    /// <summary>
+    /// Gets and Sets the reference to the texture atlas used by this sprite.
+    /// </summary>
+    public WeakReference<TextureAtlas> TextureAtlas {get; set;}
+
+    /// <summary>
+    /// Gets or Sets the source texture region represented by this sprite.
+    /// </summary>
+    public TextureRegion TextureRegion{get;set;}
+
+    /// <summary>
+    /// Gets or Sets the color mask to apply when rendering.
+    /// </summary>
+    public Color Color {get;set;} = Color.White;
+
+
+    /// <summary>
+    /// Gets or Sets the scale factor to apply to the xy-axes when rendering.
+    /// </summary>
+    public Vector2 Scale {get;set;} = Vector2.One;
+
+    /// <summary>
+    /// Gets or set the xy-coordinate origin point, relative to the top left corner, of the sprite texture. 
+    /// </summary>
+    public Vector2 Origin {get;set;} = Vector2.Zero;
+
+    /// <summary>
+    /// Gets or Sets the xy-position where the sprite is drawn.
+    /// </summary>
+    public Vector2 Position {get;set;} = Vector2.Zero;
+
+    /// <summary>
+    /// Gets or Sets the sprite effect to apply when rendering.
+    /// </summary>
+    public SpriteEffects Effects {get;set;} = SpriteEffects.None;
+
+    /// <summary>
+    /// Gets or Sets the amount of rotation, in radians, to apply when rendering.
+    /// </summary>
+    public float Rotation {get;set;} = 0.0f;
+
+    /// <summary>
+    /// Gets or Sets the depth layer when rendering.
+    /// </summary>
+    public float Layer {get;set;} = 0.0f;
+
+    /// <summary>
+    /// Gets the width, in pixels, of the sprite texture.
+    /// </summary>
+    public float Width => TextureRegion.Width * Scale.X;
+
+    /// <summary>
+    /// Gets the height, in pixels, of the sprite texture.
+    /// </summary>
+    public float Height => TextureRegion.Height * Scale.Y;
+
+    public TimeSpan ElapsedTime = new TimeSpan();
+    public Animation _animation;
+    public int CurrentFame = 0;
+
+    // Creates a new AnimatedSprite.
+    public AnimatedSprite(){}
 
     public Animation Animation{
         get => _animation;
@@ -24,26 +80,9 @@ public class AnimatedSprite : Sprite{
     /// <summary>
     /// Creates a new AnimatedSprite.
     /// </summary>
-    public AnimatedSprite(){}
-
-    /// <summary>
-    /// Creates a new AnimatedSprite.
-    /// </summary>
     /// <param name="animation">The animation to start playing.</param>
-    public AnimatedSprite(Animation animation){
+    public AnimatedSprite(Animation animation, WeakReference<TextureAtlas> textureAtlas){
         this.Animation = animation;
-    }
-
-    /// <summary>
-    /// Updates this animated sprite.
-    /// </summary>
-    /// <param name="gameTime">The current game timing values provided by monogame.</param>
-    public void Update(GameTime gameTime){
-        _elapsedTime += gameTime.ElapsedGameTime;
-        if(_elapsedTime >= _animation.Interval){
-            _elapsedTime -= _animation.Interval;
-            _currentFame = _currentFame >= Animation.Frames.Count-1? 0 : _currentFame +=1;
-            TextureRegion = _animation.Frames[_currentFame];
-        }
+        TextureAtlas = textureAtlas;
     }
 }

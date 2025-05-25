@@ -26,4 +26,6 @@ public struct Token{
         Gen = gen;
         Valid = true;
     }
+
+    public bool IsValid => Valid == true;
 }

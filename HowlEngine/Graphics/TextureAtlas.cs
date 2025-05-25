@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,10 +14,14 @@ public class TextureAtlas{
     private Dictionary<string, TextureRegion> _regions;
     private Dictionary<string, Animation> _animations;
 
+    // NOTE:
+    // Do NOT store Textures outside of this class.
+    // Use a WeakReference to it to avoid memory leaks.
+
     /// <summary>
     /// Gets or Sets the source texture represented by this texture atlas.
     /// </summary>
-    public Texture2D Texture {get; set;}
+    public Texture2D Texture {get; private set;}
 
     /// <summary>
     /// Creates a new texture atlas.
@@ -47,7 +50,7 @@ public class TextureAtlas{
     /// <param name="width">The width, in pixels, of the region.</param>
     /// <param name="height">The height, in pixels, of the region.</param>
     public void AddRegion(string name, int x, int y, int width, int height){
-        TextureRegion region = new TextureRegion(Texture, x, y, width, height);
+        TextureRegion region = new TextureRegion(x, y, width, height);
         _regions.Add(name, region);
     }
 
@@ -168,12 +171,11 @@ public class TextureAtlas{
                         foreach(XElement animation in animations){
                             string name = animation.Attribute("name")?.Value;
                             TimeSpan interval = TimeSpan.FromMilliseconds(float.Parse(animation.Attribute("interval")?.Value ?? "0"));
-                            // TimeSpan interval = TimeSpan.FromSeconds(int.Parse(animation.Attribute("interval")?.Value ?? "0"));
-                            List<TextureRegion> textureRegions = new List<TextureRegion>();
-                            IEnumerable<XElement> frames = animation.Elements("Frame");
-                            if(frames != null){
-                                foreach(XElement frame in frames){
-                                    textureRegions.Add(atlas.GetRegion(frame.Attribute("region")?.Value));
+                            var frames = animation.Elements("Frame").ToList();
+                            TextureRegion[] textureRegions = new TextureRegion[frames.Count];
+                            if(frames.Count>0){
+                                for(int i = 0; i < frames.Count; i++){
+                                    textureRegions[i] = atlas.GetRegion(frames[i].Attribute("region")?.Value);
                                 }
                             }
                             atlas.AddAnimation(
@@ -201,7 +203,7 @@ public class TextureAtlas{
     /// <param name="regionName">The name of the region to create the sprite with.</param>
     /// <returns>A new Sprite using the texture region witht the specified name.</returns>
     public Sprite CreateSprite(string regionName){
-        return new Sprite(GetRegion(regionName));
+        return new Sprite(GetRegion(regionName), new WeakReference<TextureAtlas>(this));
     }
 
     /// <summary>
@@ -210,6 +212,6 @@ public class TextureAtlas{
     /// <param name="animationName">the name of the animation to creat the sprite with.</param>
     /// <returns></returns>
     public AnimatedSprite CreateAnimatedSprite(string animationName){
-        return new AnimatedSprite(GetAnimation(animationName));
+        return new AnimatedSprite(GetAnimation(animationName), new WeakReference<TextureAtlas>(this));
     }
 }

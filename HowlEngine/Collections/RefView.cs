@@ -24,4 +24,6 @@ public ref struct RefView<T>{
         Data = ref data;
         Valid = valid;
     }
+
+    public bool IsValid => Valid == true;
 }

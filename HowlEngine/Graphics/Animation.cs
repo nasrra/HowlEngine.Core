@@ -3,12 +3,12 @@ using System.Collections.Generic;
 
 namespace HowlEngine.Graphics;
 
-public class Animation{
+public struct Animation{
     /// <summary>
     /// The texture regions that make up the frames of this animation.
     /// The order of the regions stored is the order they are displayed in.
     /// </summary>
-    public List<TextureRegion> Frames {get;set;}
+    public TextureRegion[] Frames {get;set;}
 
     /// <summary>
     /// The amount of time to delay between each frame, in milliseconds, before moving to the next frame.
@@ -18,8 +18,8 @@ public class Animation{
     /// <summary>
     /// Creates a new animation.
     /// </summary>
-    public Animation(){
-        Frames = new List<TextureRegion>();
+    public Animation(int frames){
+        Frames = new TextureRegion[frames];
         Interval = TimeSpan.FromMilliseconds(100);
     }
 
@@ -28,7 +28,7 @@ public class Animation{
     /// </summary>
     /// <param name="frames">An ordered collection of the frames for this animation.</param>
     /// <param name="interval">The amount of time to delay between each frame, in milliseconds, before moving to the next frame.</param>
-    public Animation(List<TextureRegion> frames, TimeSpan interval){
+    public Animation(TextureRegion[] frames, TimeSpan interval){
         Frames = frames;
         Interval = interval;
     }
