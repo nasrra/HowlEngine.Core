@@ -1,0 +1,13 @@
+C:\MonogameProjects\HowlEngine\HowlEngine\bin\Development\net8.0\HowlEngine.deps.json
+C:\MonogameProjects\HowlEngine\HowlEngine\bin\Development\net8.0\HowlEngine.dll
+C:\MonogameProjects\HowlEngine\HowlEngine\bin\Development\net8.0\HowlEngine.pdb
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.csproj.AssemblyReference.cache
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.GeneratedMSBuildEditorConfig.editorconfig
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.AssemblyInfoInputs.cache
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.AssemblyInfo.cs
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.csproj.CoreCompileInputs.cache
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.sourcelink.json
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.dll
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\refint\HowlEngine.dll
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\HowlEngine.pdb
+C:\MonogameProjects\HowlEngine\HowlEngine\obj\Development\net8.0\ref\HowlEngine.dll

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using HowlEngine.Input;
+using HowlEngine.Audio;
 
 namespace HowlEngine;
 
@@ -42,6 +43,11 @@ public class HowlApp : Game {
     /// </summary>
     public static float DeltaTime{get; private set;}
 
+    /// <summary>
+    /// Gets the audio manager used to play and emit sounds.
+    /// </summary>
+    public static AudioManager AudioManager {get; private set;}
+
     private static float _fixedUpdateCounter = 0.0f;
     private static float _fixedDeltaTime = 0.0166667f; // update the physics loop at 60hz;
 
@@ -80,6 +86,7 @@ public class HowlApp : Game {
 
         IsMouseVisible = mouseVisible;
 
+        AudioManager = new AudioManager("Audio\\Desktop");
     }
 
     protected override void Initialize(){
@@ -96,6 +103,13 @@ public class HowlApp : Game {
 
         DebugTexture = new Texture2D(GraphicsDevice, 1, 1);
         DebugTexture.SetData([Color.White]);
+
+        #if DEV
+        Console.WriteLine("[HOWLAPP] DEV CONFIGURATION.");
+        #endif
+        #if DEBUG
+        Console.WriteLine("[HOWLAPP] DEBUG CONFIGURATION.");
+        #endif
 	}
 
     protected override void Update(GameTime gameTime){
