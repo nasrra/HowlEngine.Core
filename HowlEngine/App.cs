@@ -1,6 +1,5 @@
 using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using HowlEngine.Input;
 using HowlEngine.Audio;
@@ -29,11 +28,6 @@ public class HowlApp : Game {
     public static SpriteBatch SpriteBatch { get; private set; }
 
     /// <summary>
-    /// Gets the content manager used to load global assets.
-    /// </summary>
-    public static new ContentManager Content { get; private set; }
-
-    /// <summary>
     /// Gets the input manager used to get keyboard, mouse, and gamepad input.
     /// </summary>
     public static InputManager Input {get; private set;}
@@ -47,6 +41,11 @@ public class HowlApp : Game {
     /// Gets the audio manager used to play and emit sounds.
     /// </summary>
     public static AudioManager AudioManager {get; private set;}
+
+    public static string AssetsFileDirectory    {get; private set;}
+    public static string ScenesFileDirectory    {get; private set;}
+    public static string ImagesFileDirectory    {get; private set;}
+    public static string AudioFileDirectory     {get; private set;}
 
     private static float _fixedUpdateCounter = 0.0f;
     private static float _fixedDeltaTime = 0.0166667f; // update the physics loop at 60hz;
@@ -77,16 +76,15 @@ public class HowlApp : Game {
         // Set the window title
         Window.Title = title;
 
-        // Set the content manager to reference the base Game's
-        // content manager.
-        Content = base.Content;
-
-        // Set the root directory for content.
-        Content.RootDirectory = "Content";
-
         IsMouseVisible = mouseVisible;
 
-        AudioManager = new AudioManager("Audio\\Desktop");
+        AudioManager = new AudioManager("Assets\\Audio\\Desktop");
+
+        // This points to your executable directory, which is accessible for reading on most console platforms (Xbox, PS, Switch), assuming proper packaging.
+        AssetsFileDirectory = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets");
+        ScenesFileDirectory = System.IO.Path.Combine(AssetsFileDirectory, "Scenes\\Exports");
+        ImagesFileDirectory = System.IO.Path.Combine(AssetsFileDirectory, "Images\\Exports");
+        AudioFileDirectory  = System.IO.Path.Combine(AssetsFileDirectory, "Audio\\Desktop");
     }
 
     protected override void Initialize(){
@@ -150,3 +148,13 @@ public class HowlApp : Game {
         Graphics.ApplyChanges();        
     }
 }
+
+
+
+// ✅ Where to save data on consoles (and other platforms):
+// Platform Type	Typical Writable Folder / API	Notes
+// Windows/PC	Anywhere you have permissions (e.g., AppData, Documents)	Use %AppData% or user directories
+// Xbox (UWP)	Windows.Storage.ApplicationData.Current.LocalFolder	Use UWP API to get the folder
+// PlayStation	SaveData folder provided by SDK	Platform-specific API
+// Nintendo Switch	Application Save Data folder via SDK	Platform-specific API
+// Linux/macOS	User home directories (~/.config, ~/Documents, etc.)

@@ -18,10 +18,11 @@ public class SpriteRenderer{
     /// <param name="atlases"></param>
     /// <param name="staticSpritesAmount"></param>
     /// <param name="animatedSpritesAmount"></param>
-    public SpriteRenderer(Dictionary<string, TextureAtlas> atlases, int staticSpritesAmount, int animatedSpritesAmount){
+    public SpriteRenderer(Dictionary<string, string> atlasesToLoad, int staticSpritesAmount, int animatedSpritesAmount){
         staticSprites = new StructPool<Sprite>(staticSpritesAmount);
         animatedSprites = new StructPool<AnimatedSprite>(animatedSpritesAmount);
-        this.atlases = atlases;
+        atlases = new Dictionary<string, TextureAtlas>();
+        LoadTextureAtlas(atlasesToLoad);
     }
 
     /// <summary>
@@ -84,6 +85,27 @@ public class SpriteRenderer{
 
         return token;
     }
+
+    public Token AllocateAnimatedSprite(string atlasName, string animationName){
+        
+        // Allocate.
+
+        Token token = animatedSprites.Allocate();
+
+        // return invalid token if it could not be allocated.
+
+        if(!token.IsValid){
+            return token;
+        }
+
+        // set data.
+        animatedSprites.TryGetData(ref token).Data = atlases[atlasName].CreateAnimatedSprite(animationName);
+
+        // return;
+
+        return token;
+    }
+
 
     /// <summary>
     /// Frees a Sprite from the internal data structure at a given index.
@@ -151,7 +173,7 @@ public class SpriteRenderer{
 
         // Update animated sprites.
 
-        for(int i = 0; i < animatedSprites.Count; i++){
+        for(int i = 0; i < animatedSprites.Capacity; i++){
 
             // Skip the slot if it is not active.
 
@@ -174,7 +196,7 @@ public class SpriteRenderer{
     }
 
     public void DrawAll(SpriteBatch spriteBatch, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = null){
-        for(int i = 0; i < staticSprites.Count; i++){
+        for(int i = 0; i < staticSprites.Capacity; i++){
             // Skip the slot if it is not active.
 
             if(staticSprites.IsSlotActive(i) == false){
@@ -187,9 +209,9 @@ public class SpriteRenderer{
             
             // Draw if the texture atlas is currently sill in memory.
 
-            if(sprite.TextureAtlas.TryGetTarget(out TextureAtlas atlas)){
+            if(sprite.Texture.TryGetTarget(out Texture2D texture)){
                 spriteBatch.Draw(
-                    atlas.Texture,
+                    texture,
                     sprite.Position, 
                     sprite.TextureRegion.SourceRect, 
                     sprite.Color, 
@@ -200,11 +222,11 @@ public class SpriteRenderer{
                     sprite.Layer
                 ); 
             }else{
-                sprite.TextureAtlas = null;
+                sprite.Texture = null;
             }
         }
 
-        for(int i = 0; i < animatedSprites.Count; i++){
+        for(int i = 0; i < animatedSprites.Capacity; i++){
             // Skip the slot if it is not active.
 
             if(animatedSprites.IsSlotActive(i) == false){
@@ -234,6 +256,16 @@ public class SpriteRenderer{
             }
         }
 
+    }
+
+    public void LoadTextureAtlas(string atlasName, string filePath){
+        atlases.Add(atlasName, TextureAtlas.FromFile(filePath));
+    }
+
+    public void LoadTextureAtlas(Dictionary<string, string> atlasesToLoad){
+        foreach(KeyValuePair<string, string> kvp in atlasesToLoad){
+            atlases.Add(kvp.Key, TextureAtlas.FromFile(kvp.Value));
+        }
     }
 
     public void DrawStaticSprites(){

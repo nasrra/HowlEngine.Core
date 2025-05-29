@@ -4,8 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Graphics;
@@ -106,12 +104,12 @@ public class TextureAtlas{
         return _animations.Remove(animationName);
     }
 
-    public static TextureAtlas FromFile(ContentManager content, string fileName){
+    public static TextureAtlas FromFile(string fileName){
         TextureAtlas atlas = new TextureAtlas();
-        string file_path = Path.Combine(content.RootDirectory, fileName);
-
+        string file_path = Path.Combine(HowlApp.ImagesFileDirectory, fileName);
+        Console.WriteLine(file_path);
         try{
-            using (Stream stream = TitleContainer.OpenStream(file_path)){
+            using (StreamReader stream = new StreamReader(file_path)){
                 using(XmlReader reader = XmlReader.Create(stream)){
                     XDocument doc = XDocument.Load(reader);
                     XElement root = doc.Root;
@@ -119,7 +117,7 @@ public class TextureAtlas{
                     // The <Texture> element contains the content path for the Texture2D to load.
                     // It is retrieved to then use the content manager to load the texture.
                     string texturePath = root.Element("FilePath").Value;
-                    atlas.Texture = content.Load<Texture2D>(texturePath);
+                    atlas.Texture = Texture2D.FromFile(HowlApp.GraphicsDevice, System.IO.Path.Combine(HowlApp.ImagesFileDirectory, texturePath));
 
                     // =================================================================================
                     // The <Regions> element contains individual <Region> elements, each one describing
@@ -203,7 +201,7 @@ public class TextureAtlas{
     /// <param name="regionName">The name of the region to create the sprite with.</param>
     /// <returns>A new Sprite using the texture region witht the specified name.</returns>
     public Sprite CreateSprite(string regionName){
-        return new Sprite(GetRegion(regionName), new WeakReference<TextureAtlas>(this));
+        return new Sprite(GetRegion(regionName), new WeakReference<Texture2D>(Texture));
     }
 
     /// <summary>

@@ -10,7 +10,7 @@ public struct Sprite{
     /// <summary>
     /// Gets and Sets the reference to the texture atlas used by this sprite.
     /// </summary>
-    public WeakReference<TextureAtlas> TextureAtlas {get; set;}
+    public WeakReference<Texture2D> Texture {get; set;}
 
     /// <summary>
     /// Gets or Sets the source texture region represented by this sprite.
@@ -72,9 +72,15 @@ public struct Sprite{
     /// Creates a new sprite  using the specified source texture region.
     /// </summary>
     /// <param name="textureRegion">The texture region to use as the source texture when rendering.</param>
-    public Sprite(TextureRegion textureRegion, WeakReference<TextureAtlas> textureAtlas){
+    public Sprite(TextureRegion textureRegion, WeakReference<Texture2D> texture){
         TextureRegion = textureRegion;
-        TextureAtlas = textureAtlas;
+        Texture = texture;
+    }
+
+    public Sprite(TextureRegion textureRegion, WeakReference<Texture2D> texture, Vector2 position){
+        TextureRegion = textureRegion;
+        Texture = texture;
+        Position = position;
     }
 
     // /// <summary>
