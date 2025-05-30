@@ -16,7 +16,9 @@ using Microsoft.Xna.Framework;
 
 namespace HowlEngine.Graphics{
 
-    public partial class Tileset{
+    public struct Tileset{
+        public Tileset(){}
+
         [JsonPropertyName("columns")]
         public long Columns { get; set; }
 
@@ -66,7 +68,7 @@ namespace HowlEngine.Graphics{
         public Texture2D Texture {get; private set;}
 
         [JsonIgnore]
-        public int FirstGid {get; private set;} = 1;
+        public int FirstGid {get; set;} = 1;
 
         public static Tileset FromJson(string json){
             Tileset tileset = JsonSerializer.Deserialize<Tileset>(json, HowlEngine.Json.Converter.Settings);
@@ -99,8 +101,13 @@ namespace HowlEngine.Graphics{
             return tileset;
         }
 
-        public Sprite CreateTile(Vector2 position, int tileId){
-            return new Sprite(TileIds[tileId-(FirstGid-1)], new WeakReference<Texture2D>(Texture), position);
+        public TileSprite CreateTileSprite(Vector2 position, int tileId){
+            return new TileSprite(TileIds[tileId-(FirstGid-1)], FirstGid, position);
+        }
+        
+        public void Dispose(){
+            Texture.Dispose();
+            Texture = null;
         }
     }
 }

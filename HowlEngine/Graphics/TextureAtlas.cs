@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Graphics;
 
-public class TextureAtlas{
+public struct TextureAtlas : IDisposable{
     private Dictionary<string, TextureRegion> _regions;
     private Dictionary<string, Animation> _animations;
 
@@ -200,8 +200,8 @@ public class TextureAtlas{
     /// </summary>
     /// <param name="regionName">The name of the region to create the sprite with.</param>
     /// <returns>A new Sprite using the texture region witht the specified name.</returns>
-    public Sprite CreateSprite(string regionName){
-        return new Sprite(GetRegion(regionName), new WeakReference<Texture2D>(Texture));
+    public StaticSprite CreateSprite(string regionName, string textureAtlasId){
+        return new StaticSprite(GetRegion(regionName), textureAtlasId);
     }
 
     /// <summary>
@@ -209,7 +209,11 @@ public class TextureAtlas{
     /// </summary>
     /// <param name="animationName">the name of the animation to creat the sprite with.</param>
     /// <returns></returns>
-    public AnimatedSprite CreateAnimatedSprite(string animationName){
-        return new AnimatedSprite(GetAnimation(animationName), new WeakReference<TextureAtlas>(this));
+    public AnimatedSprite CreateAnimatedSprite(string animationName, string textureAtlasId){
+        return new AnimatedSprite(GetAnimation(animationName), textureAtlasId);
+    }
+
+    public void Dispose(){
+        Texture.Dispose();
     }
 }

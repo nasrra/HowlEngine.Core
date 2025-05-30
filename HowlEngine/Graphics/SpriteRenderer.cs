@@ -8,9 +8,11 @@ using HowlEngine.Collections;
 namespace HowlEngine.Graphics;
 
 public class SpriteRenderer{
+    private Dictionary<long, Tileset> tilesets;
     private Dictionary<string, TextureAtlas> atlases;
-    private StructPool<Sprite> staticSprites;
+    private StructPool<StaticSprite> staticSprites;
     private StructPool<AnimatedSprite> animatedSprites;
+    private StructPool<TileSprite> tileSprites;
 
     /// <summary>
     /// Creates a new SpriteRenderer instance.
@@ -18,20 +20,13 @@ public class SpriteRenderer{
     /// <param name="atlases"></param>
     /// <param name="staticSpritesAmount"></param>
     /// <param name="animatedSpritesAmount"></param>
-    public SpriteRenderer(Dictionary<string, string> atlasesToLoad, int staticSpritesAmount, int animatedSpritesAmount){
-        staticSprites = new StructPool<Sprite>(staticSpritesAmount);
+    public SpriteRenderer(Dictionary<string, string> atlasesToLoad, int staticSpritesAmount, int animatedSpritesAmount, int tileSpritesAmount){
+        staticSprites = new StructPool<StaticSprite>(staticSpritesAmount);
         animatedSprites = new StructPool<AnimatedSprite>(animatedSpritesAmount);
+        tileSprites = new StructPool<TileSprite>(tileSpritesAmount);
         atlases = new Dictionary<string, TextureAtlas>();
+        tilesets = new Dictionary<long, Tileset>();
         LoadTextureAtlas(atlasesToLoad);
-    }
-
-    /// <summary>
-    /// Gets a WeakReference to a TextureAtlas stored within this sprite renderer.
-    /// </summary>
-    /// <param name="atlasName">The sprecified name of the TextureAtlas to retrieve from the internal data structure.</param>
-    /// <returns>A WeakReference to the TextureAtlas.</returns>
-    public WeakReference<TextureAtlas> GetTextureAtlas(string atlasName){
-        return new WeakReference<TextureAtlas>(atlases[atlasName]);
     }
 
     /// <summary>
@@ -39,7 +34,7 @@ public class SpriteRenderer{
     /// </summary>
     /// <param name="sprite">The data to assign to the newly allocated slot.</param>
     /// <returns>A Token to the data's position in the internal data structure.</returns>
-    public Token AllocateStaticSprite(Sprite sprite){
+    public Token AllocateStaticSprite(StaticSprite sprite){
         
         // Allocate
 
@@ -99,7 +94,27 @@ public class SpriteRenderer{
         }
 
         // set data.
-        animatedSprites.TryGetData(ref token).Data = atlases[atlasName].CreateAnimatedSprite(animationName);
+        animatedSprites.TryGetData(ref token).Data = atlases[atlasName].CreateAnimatedSprite(animationName, atlasName);
+
+        // return;
+
+        return token;
+    }
+
+    public Token AllocateTileSprite(Vector2 position, long firstGid, int tileId){
+
+        // Allocate
+        Token token = tileSprites.Allocate();
+
+        // return invalid token if it could not be allocated.
+
+        if(!token.IsValid){
+            return token;
+        }
+
+        // set data.
+
+        tileSprites.TryGetData(ref token).Data = tilesets[firstGid].CreateTileSprite(position, tileId);
 
         // return;
 
@@ -129,7 +144,7 @@ public class SpriteRenderer{
     /// <param name="token">The specified Token to reference a Sprite within the internal data structure.</param>
     /// <param name="position">The position to assign to the specified Sprite.</param>
     public void SetStaticSpritePosition(ref Token token, Vector2 position){
-        RefView<Sprite> sprite = GetStaticSprite(ref token);
+        RefView<StaticSprite> sprite = GetStaticSprite(ref token);
         if(sprite.IsValid){
             sprite.Data.Position = position;
         }
@@ -152,7 +167,7 @@ public class SpriteRenderer{
     /// </summary>
     /// <param name="token">The specified Token to reference a Sprite within the internal data structure.</param>
     /// <returns>A RefView of the retrieved data by the specified Token.</returns>
-    public RefView<Sprite> GetStaticSprite(ref Token token){
+    public RefView<StaticSprite> GetStaticSprite(ref Token token){
         return staticSprites.TryGetData(ref token);
     }
 
@@ -196,24 +211,58 @@ public class SpriteRenderer{
     }
 
     public void DrawAll(SpriteBatch spriteBatch, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = null){
-        for(int i = 0; i < staticSprites.Capacity; i++){
+        DrawStaticSprites(spriteBatch);
+        DrawAnimatedSprites(spriteBatch);
+        DrawTileSprites(spriteBatch);
+    }
+
+    public void LoadTextureAtlas(Dictionary<string, string> atlasesToLoad){
+        foreach(KeyValuePair<string, string> kvp in atlasesToLoad){
+            LoadTextureAtlas(kvp.Key, kvp.Value);
+        }
+    }
+
+    public void LoadTextureAtlas(string atlasName, string filePath){
+        atlases.Add(atlasName, TextureAtlas.FromFile(filePath));
+    }
+
+    public void LoadTilesetData(Dictionary<long, string> tilesetsToLoad){
+        foreach (KeyValuePair<long, string> kvp in tilesetsToLoad){
+            LoadTilesetData((int)kvp.Key, kvp.Value);
+        }
+    }
+
+    public void LoadTilesetData(int firstGid, string filePath){
+        string json = System.IO.File.ReadAllText(filePath);
+        Tileset tileset = Tileset.FromJson(json);
+        tileset.FirstGid = firstGid; 
+        tilesets.Add(firstGid, tileset);
+    }
+
+    public void UnloadTilesetData(int firstGid){
+        tilesets[firstGid].Dispose();
+        tilesets.Remove(firstGid);
+    }
+
+    public void DrawTileSprites(SpriteBatch spriteBatch){
+        for(int i = 0; i < tileSprites.Capacity; i++){
             // Skip the slot if it is not active.
 
-            if(staticSprites.IsSlotActive(i) == false){
+            if(tileSprites.IsSlotActive(i) == false){
                 continue;
             }
             
             // Get the sprite the draw.
 
-            ref Sprite sprite = ref staticSprites.GetData(i);
+            ref TileSprite sprite = ref tileSprites.GetData(i);
             
             // Draw if the texture atlas is currently sill in memory.
 
-            if(sprite.Texture.TryGetTarget(out Texture2D texture)){
+            if(tilesets.ContainsKey(sprite.TilesetFirstGid)){
                 spriteBatch.Draw(
-                    texture,
+                    tilesets[sprite.TilesetFirstGid].Texture,
                     sprite.Position, 
-                    sprite.TextureRegion.SourceRect, 
+                    sprite.TextureRegion.SourceRect,
                     sprite.Color, 
                     sprite.Rotation, 
                     sprite.Origin, 
@@ -221,11 +270,11 @@ public class SpriteRenderer{
                     sprite.Effects, 
                     sprite.Layer
                 ); 
-            }else{
-                sprite.Texture = null;
             }
-        }
+        }       
+    }
 
+    public void DrawAnimatedSprites(SpriteBatch spriteBatch){
         for(int i = 0; i < animatedSprites.Capacity; i++){
             // Skip the slot if it is not active.
 
@@ -239,9 +288,9 @@ public class SpriteRenderer{
             
             // Draw if the texture atlas is currently sill in memory.
 
-            if(sprite.TextureAtlas.TryGetTarget(out TextureAtlas atlas)){
+            if(atlases.ContainsKey(sprite.TextureAtlasId)){
                 spriteBatch.Draw(
-                    atlas.Texture,
+                    atlases[sprite.TextureAtlasId].Texture,
                     sprite.Position, 
                     sprite.TextureRegion.SourceRect, 
                     sprite.Color, 
@@ -251,25 +300,38 @@ public class SpriteRenderer{
                     sprite.Effects, 
                     sprite.Layer
                 ); 
-            }else{
-                sprite.TextureAtlas = null;
             }
         }
-
     }
 
-    public void LoadTextureAtlas(string atlasName, string filePath){
-        atlases.Add(atlasName, TextureAtlas.FromFile(filePath));
-    }
+    public void DrawStaticSprites(SpriteBatch spriteBatch){
+        for(int i = 0; i < staticSprites.Capacity; i++){
+            // Skip the slot if it is not active.
 
-    public void LoadTextureAtlas(Dictionary<string, string> atlasesToLoad){
-        foreach(KeyValuePair<string, string> kvp in atlasesToLoad){
-            atlases.Add(kvp.Key, TextureAtlas.FromFile(kvp.Value));
+            if(staticSprites.IsSlotActive(i) == false){
+                continue;
+            }
+            
+            // Get the sprite the draw.
+
+            ref StaticSprite sprite = ref staticSprites.GetData(i);
+            
+            // Draw if the texture atlas is currently sill in memory.
+
+            if(atlases.ContainsKey(sprite.TextureAtlasId)){
+                spriteBatch.Draw(
+                    atlases[sprite.TextureAtlasId].Texture,
+                    sprite.Position, 
+                    sprite.TextureRegion.SourceRect, 
+                    sprite.Color, 
+                    sprite.Rotation, 
+                    sprite.Origin, 
+                    sprite.Scale,
+                    sprite.Effects, 
+                    sprite.Layer
+                ); 
+            }
         }
-    }
-
-    public void DrawStaticSprites(){
-
     }
 
     public void FreeTextures(){

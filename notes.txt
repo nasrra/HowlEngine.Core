@@ -1,0 +1,11 @@
+
+
+The best way to avoid triggering GC is to not generate garbage. You're mentioning that you created a Dictionary with string as key. Strings generate a lot of garbage. If your drawing code works by generating a new string every time you're trying to look up a sprite batch, you're going to have a lot of garbage created. Example:
+
+    Sprite s = this.spriteDictionary["Object1"]; // generates a new string of "Object1" every time it's called
+
+If you do that once for every sprite you call, you'll have lots of string created that are then eligible for garbage collection once the draw call is over.
+
+What you can do instead is declaring string constants and putting those in there instead, as that allows you to reuse the same strings over and over which means they won't get garbage collected (at least not until your dictionary is not referenced by anything anymore). Or rather, create classes for your actors and reference the sprite directly in your class. Then make a list of all the actors to refresh and iterate over that in your draw calls.
+
+This may or may not be your problem, and you may have other things that generate garbage as well, but it was the first thing that came to mind when I read your post.

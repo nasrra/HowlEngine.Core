@@ -1,10 +1,12 @@
+
+
 using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Graphics;
 
-public struct AnimatedSprite : ISprite{
+public struct StaticSprite : ISprite{
     /// <summary>
     /// Gets and Sets the reference to the texture atlas used by this sprite.
     /// </summary>
@@ -61,28 +63,14 @@ public struct AnimatedSprite : ISprite{
     /// </summary>
     public float Height => TextureRegion.Height * Scale.Y;
 
-    public TimeSpan ElapsedTime = new TimeSpan();
-    public Animation _animation;
-    public int CurrentFame = 0;
-
     // Creates a new AnimatedSprite.
-    public AnimatedSprite(){}
-
-    public Animation Animation{
-        get => _animation;
-        set {
-            _animation = value;
-            // set the currentr region to be thef irst frame of the animation.
-            TextureRegion = _animation.Frames[0];
-        }
-    }
+    public StaticSprite(){}
 
     /// <summary>
     /// Creates a new AnimatedSprite.
     /// </summary>
-    /// <param name="animation">The animation to start playing.</param>
-    public AnimatedSprite(Animation animation, string textureAtlasId){
-        this.Animation = animation;
+    public StaticSprite(TextureRegion textureRegion, string textureAtlasId){
+        TextureRegion = textureRegion;
         TextureAtlasId = textureAtlasId;
     }
 }

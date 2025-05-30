@@ -1,21 +1,21 @@
 
+
 using System;
-using HowlEngine.Collections;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace HowlEngine.Graphics;
 
-public struct Sprite{
+public struct TileSprite : ISprite{
     /// <summary>
     /// Gets and Sets the reference to the texture atlas used by this sprite.
     /// </summary>
-    public WeakReference<Texture2D> Texture {get; set;}
+    public long TilesetFirstGid {get; set;}
 
     /// <summary>
     /// Gets or Sets the source texture region represented by this sprite.
     /// </summary>
-    public TextureRegion TextureRegion{get;private set;}
+    public TextureRegion TextureRegion{get;set;}
 
     /// <summary>
     /// Gets or Sets the color mask to apply when rendering.
@@ -63,55 +63,15 @@ public struct Sprite{
     /// </summary>
     public float Height => TextureRegion.Height * Scale.Y;
 
-    /// <summary>
-    /// Creates a new sprite.
-    /// </summary>
-    public Sprite(){}
+    // Creates a new AnimatedSprite.
+    public TileSprite(){}
 
     /// <summary>
-    /// Creates a new sprite  using the specified source texture region.
+    /// Creates a new AnimatedSprite.
     /// </summary>
-    /// <param name="textureRegion">The texture region to use as the source texture when rendering.</param>
-    public Sprite(TextureRegion textureRegion, WeakReference<Texture2D> texture){
+    public TileSprite(TextureRegion textureRegion, long tilesetFirstGid, Vector2 position){
         TextureRegion = textureRegion;
-        Texture = texture;
-    }
-
-    public Sprite(TextureRegion textureRegion, WeakReference<Texture2D> texture, Vector2 position){
-        TextureRegion = textureRegion;
-        Texture = texture;
+        TilesetFirstGid = tilesetFirstGid;
         Position = position;
     }
-
-    // /// <summary>
-    // /// Sets the origin of the sprite to the center of the texture.
-    // /// </summary>
-    // public void CenterOrigin(){
-    //     Origin = new Vector2(TextureRegion.Width, TextureRegion.Height) * 0.5f;
-    // }
-
-    // /// <summary>
-    // /// Sets the origin of the sprite to the top left of the texture.
-    // /// </summary>
-    // public void ZeroOrigin(){
-    //     Origin = Vector2.Zero;
-    // }
-
-    // /// <summary>
-    // /// Submit the sprite for drawing to the current batch.
-    // /// </summary>
-    // /// <param name="spriteBatch">The SpriteBatch instance used for batching draw calls.</param>
-    // /// <param name="position">The xy-coordinate position to render at.</param>
-    // public void Draw(SpriteBatch spriteBatch, Vector2 position){
-    //     TextureRegion.Draw(
-    //         spriteBatch,
-    //         position,
-    //         Color,
-    //         Rotation,
-    //         Origin,
-    //         Scale,
-    //         Effects,
-    //         Layer
-    //     );
-    // }
 }
