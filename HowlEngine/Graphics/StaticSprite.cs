@@ -10,7 +10,7 @@ public struct StaticSprite : ISprite{
     /// <summary>
     /// Gets and Sets the reference to the texture atlas used by this sprite.
     /// </summary>
-    public string TextureAtlasId {get; set;}
+    public string TilesetId {get; set;}
 
     /// <summary>
     /// Gets or Sets the source texture region represented by this sprite.
@@ -69,8 +69,14 @@ public struct StaticSprite : ISprite{
     /// <summary>
     /// Creates a new AnimatedSprite.
     /// </summary>
-    public StaticSprite(TextureRegion textureRegion, string textureAtlasId){
+    public StaticSprite(TextureRegion textureRegion, string tilesetId){
         TextureRegion = textureRegion;
-        TextureAtlasId = textureAtlasId;
+        TilesetId = tilesetId;
+    }
+
+    public StaticSprite(TextureRegion textureRegion, Vector2 position, string tilesetId){
+        TextureRegion = textureRegion;
+        TilesetId = tilesetId;
+        Position = position;
     }
 }

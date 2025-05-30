@@ -38,5 +38,4 @@ public struct TextureRegion{
     public TextureRegion(int x, int y, int width, int height){
         SourceRect = new Rectangle(x, y, width, height);
     }
-
 }

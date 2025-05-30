@@ -8,7 +8,7 @@ public struct AnimatedSprite : ISprite{
     /// <summary>
     /// Gets and Sets the reference to the texture atlas used by this sprite.
     /// </summary>
-    public string TextureAtlasId {get; set;}
+    public string TilesetId {get; set;}
 
     /// <summary>
     /// Gets or Sets the source texture region represented by this sprite.
@@ -81,8 +81,14 @@ public struct AnimatedSprite : ISprite{
     /// Creates a new AnimatedSprite.
     /// </summary>
     /// <param name="animation">The animation to start playing.</param>
-    public AnimatedSprite(Animation animation, string textureAtlasId){
+    public AnimatedSprite(Animation animation, string tilesetId){
         this.Animation = animation;
-        TextureAtlasId = textureAtlasId;
+        TilesetId = tilesetId;
+    }
+
+    public AnimatedSprite(Animation animation, Vector2 position, string tilesetId){
+        this.Animation = animation;
+        TilesetId = tilesetId;
+        Position = position;
     }
 }
