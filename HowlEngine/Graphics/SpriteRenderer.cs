@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using HowlEngine.Collections;
 using HowlEngine.SceneManagement;
 using HowlEngine.Graphics.Config;
+using System;
 
 namespace HowlEngine.Graphics;
 
-public class SpriteRenderer{
+public class SpriteRenderer : IDisposable{
     private Dictionary<string, Tileset> tilesets;
     private StructPool<StaticSprite> staticSprites;
     private StructPool<AnimatedSprite> animatedSprites;
@@ -24,7 +25,7 @@ public class SpriteRenderer{
         animatedSprites = new StructPool<AnimatedSprite>(animatedSpritesAmount);
         tilesets = new Dictionary<string, Tileset>();
         foreach(string path in tilesetsToLoad){
-            LoadTilesetData(path);
+            LoadTilesetData(path, 1);
         }
     }
 
@@ -54,7 +55,16 @@ public class SpriteRenderer{
         return token;
     }
 
-    public Token AllocateStaticSprite(string atlasName, string spriteName){
+    public Token AllocateStaticSprite(string tilesetName, int tileId){
+        ref Tileset tileset = ref GetTileset(tilesetName);
+        return AllocateStaticSprite(tilesetName, tileset.TileIdToTileName(tileId));
+    }
+
+    public Token AllocateStaticSprite(string tilesetName, string spriteName){
+        return AllocateStaticSprite(tilesetName, spriteName, Vector2.Zero);
+    }
+
+    public Token AllocateStaticSprite(string tilesetName, string spriteName, Vector2 position){
         
         // Allocate.
 
@@ -67,13 +77,35 @@ public class SpriteRenderer{
         }
 
         // set data.
-        staticSprites.TryGetData(ref token).Data = tilesets[atlasName].CreateStaticSprite(Vector2.Zero, spriteName, atlasName);
+        staticSprites.TryGetData(ref token).Data = new StaticSprite(tilesets[tilesetName].TextureRegions[spriteName], position, tilesetName);
 
         // return;
 
         return token;
     }
 
+
+    public void LoadTileMap(long[] tileIdMap, string tilesetName, int mapWidth, int mapHeight){
+        ref Tileset tileset = ref GetTileset(tilesetName);
+        int tileWidth = tileset.TileWidth;
+        int tileHeight = tileset.TileHeight;
+        int index = 0;
+        for(int y = 0; y < mapHeight; y++){
+            for(int x = 0; x < mapWidth; x++){
+                if(tileIdMap[index] > 0){
+                    AllocateStaticSprite(
+                        tilesetName, 
+                        tileset.TileIdToTileName((int)tileIdMap[index]), 
+                        new Vector2(
+                            (x % mapWidth) * tileWidth,
+                            y * tileHeight
+                        )
+                    );
+                }
+                index++;
+            }
+        }
+    }
 
     /// <summary>
     /// Allocates a AnimatedSprite to the internal data structure.
@@ -114,7 +146,7 @@ public class SpriteRenderer{
         }
 
         // set data.
-        animatedSprites.TryGetData(ref token).Data = tilesets[atlasName].CreateAnimatedSprite(Vector2.Zero, animationName, atlasName);
+        animatedSprites.TryGetData(ref token).Data = new AnimatedSprite(tilesets[atlasName].Animations[animationName], Vector2.Zero, atlasName);
 
         // return;
 
@@ -221,14 +253,26 @@ public class SpriteRenderer{
     // }
 
     public void LoadTilesetData(TilesetToken token){
-        LoadTilesetData(token.Source);
+        LoadTilesetData(token.Source, (int)token.FirstGid);
     }
 
-    public void LoadTilesetData(string filePath){
-        string name = System.IO.Path.GetFileNameWithoutExtension(filePath);
+    public void LoadTilesetData(string jsonPath, int firstGid){
+        
+        // get the name of the tileset.
+
+        string name = System.IO.Path.GetFileNameWithoutExtension(jsonPath);
+       
+        // Allocate a new tileset.
+        
         tilesets.Add(name, new Tileset());
-        Tileset tileset = tilesets[name];
-        tileset.InitialiseFromJson(filePath);
+        
+        //  get a reference to the struct.
+        
+        ref Tileset tileset = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(tilesets, name, out bool exists);
+        if(exists == true){
+            tileset.FirstGid = firstGid;
+            tileset.InitialiseFromJson(jsonPath);
+        }
     }
 
     public void UnloadTilesetData(string tilesetName){
@@ -296,10 +340,36 @@ public class SpriteRenderer{
         }
     }
 
-    public void FreeTextures(){
-        // dispose texture atlases.
-        // clear the texture atlas list.
-        // GC.Collect().
+    public ref Tileset GetTileset(string tilesetName){
+        ref Tileset tileset = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(tilesets, tilesetName, out bool exists);
+        if(exists == false){
+            throw new Exception($"[SpriteRenderer] {tilesetName} is either invalid tileset or has not been loaded.");
+        }
+        else{
+            return ref tileset;
+        }
+
     }
-    
+
+    // public void FreeTextures(){
+    //     // dispose texture atlases.
+    //     // clear the texture atlas list.
+    //     // GC.Collect().
+    // }
+
+    public void Dispose(){
+
+        // dispose all tilesets.
+        
+        foreach(string key in tilesets.Keys){
+            ref Tileset tileset = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(tilesets, key, out bool exists);
+            if(exists == true){
+                tileset.Dispose();
+            }
+        }
+
+        tilesets.Clear();
+
+        // dispose of sprites.
+    }
 }
