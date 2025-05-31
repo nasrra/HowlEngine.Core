@@ -8,15 +8,54 @@ namespace HowlEngine.Graphics;
 
 public struct Tileset{
 
+    /// <summary>
+    /// Gets the TextureRegions stored within this tileset.
+    /// </summary>
     public Dictionary<string,TextureRegion> TextureRegions {get; private set;}
+
+    /// <summary>
+    /// Gets the Animations stored within this tileset.
+    /// </summary>
     public Dictionary<string,Animation> Animations {get; private set;}
+
+    /// <summary>
+    /// Stores a key mapping for TileId to Name when drawing a tile by its id.
+    /// </summary>
     private Dictionary<int, string> _idToNameMap;
+
+    /// <summary>
+    /// The source file directory, relative to the ImagesFileDirectory, that is used as the image for this texture (png, jpg, etc.).
+    /// </summary>
     public string Image {get; private set;}
+
+    /// <summary>
+    /// The height, in pixels, of the image stored in this texture.
+    /// </summary>
     public int ImageHeight {get; private set;}
+
+    /// <summary>
+    /// The width, in pixels, of the image stored in this texture.
+    /// </summary>
     public int ImageWidth {get; private set;}
+
+    /// <summary>
+    /// The height, in pixels, of an individual tile within this tileset.
+    /// </summary>
     public int TileHeight {get; private set;}
+
+    /// <summary>
+    /// The width, in pixels, of an individual tile within this tileset.
+    /// </summary>
     public int TileWidth {get; private set;}
+
+    /// <summary>
+    /// The amount of tiles that fit into the ImageWidth.
+    /// </summary>
     public int TilesPerRow {get; private set;}
+
+    /// <summary>
+    /// The offset of indexing TileIds.
+    /// </summary>
     public int FirstGid {get; set;} = 1;
 
 
@@ -25,12 +64,19 @@ public struct Tileset{
     /// </summary>
     public Texture2D Texture {get; private set;}
 
+    /// <summary>
+    /// Creates a new Tileset instance.
+    /// </summary>
     public Tileset(){
         TextureRegions  = new();
         Animations      = new();
         _idToNameMap    = new();
     }
 
+    /// <summary>
+    /// Initialises a Tileset via a Json config.
+    /// </summary>
+    /// <param name="filePath">The file path, relative to ImagesFileDirectory, that stores the json config of a given tileset.</param>
     public void InitialiseFromJson(string filePath){
         string fullPath     = System.IO.Path.Combine(HowlApp.ImagesFileDirectory,filePath);
         string directory    = System.IO.Path.GetDirectoryName(fullPath);
@@ -119,19 +165,18 @@ public struct Tileset{
         Texture = Texture2D.FromFile(HowlApp.GraphicsDevice, System.IO.Path.Combine(HowlApp.ImagesFileDirectory, System.IO.Path.Combine(directory, Image)));
     }
 
-
-    public StaticSprite CreateStaticSprite(Vector2 position, string spriteName, string textureId){
-        return new StaticSprite(TextureRegions[spriteName],  position, textureId);
-    }
-
-    public AnimatedSprite CreateAnimatedSprite(Vector2 position, string spriteName, string textureId){
-        return new AnimatedSprite(Animations[spriteName], position, textureId);
-    }
-
+    /// <summary>
+    /// Gets the name of a tile from a given tile-id.
+    /// </summary>
+    /// <param name="tileId">The specified tile-id.</param>
+    /// <returns>The name of a tile.</returns>
     public string TileIdToTileName(int tileId){
         return _idToNameMap[tileId];
     }
 
+    /// <summary>
+    /// Disposes all stored data within the internal data structures of this Texture.
+    /// </summary>
     public void Dispose(){
         
         Texture.Dispose();
@@ -147,7 +192,11 @@ public struct Tileset{
         _idToNameMap = null;
     }
 
-
+    /// <summary>
+    /// Gets the uv-coordinate on an image file of a given tile-id.
+    /// </summary>
+    /// <param name="tileId">The specified tile-id.</param>
+    /// <returns>The uv-coordinate of a tile.</returns>
     public int[] TiledIdToUVCoord(int tileId){
         return new int[]{
             (tileId % TilesPerRow) * (int)TileWidth,

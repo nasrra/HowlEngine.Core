@@ -3,8 +3,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using HowlEngine.Collections;
-using HowlEngine.SceneManagement;
-using HowlEngine.Graphics.Config;
 using System;
 
 namespace HowlEngine.Graphics;
@@ -25,12 +23,12 @@ public class SpriteRenderer : IDisposable{
         animatedSprites = new StructPool<AnimatedSprite>(animatedSpritesAmount);
         tilesets = new Dictionary<string, Tileset>();
         foreach(string path in tilesetsToLoad){
-            LoadTilesetData(path, 1);
+            LoadTileset(path, 1);
         }
     }
 
     /// <summary>
-    /// Allocates A Sprite to the internal data structure.
+    /// Allocates A StaticSprite to the internal data structure.
     /// </summary>
     /// <param name="sprite">The data to assign to the newly allocated slot.</param>
     /// <returns>A Token to the data's position in the internal data structure.</returns>
@@ -55,15 +53,39 @@ public class SpriteRenderer : IDisposable{
         return token;
     }
 
+
+    /// <summary>
+    /// Allocates a StaticSprite to the internal data structure and sets its texture to a specified tile within a loaded tileset.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded tileset.</param>
+    /// <param name="tileId">The specified tile-id on the tilesets source image.</param>
+    /// <returns></returns>
     public Token AllocateStaticSprite(string tilesetName, int tileId){
         ref Tileset tileset = ref GetTileset(tilesetName);
         return AllocateStaticSprite(tilesetName, tileset.TileIdToTileName(tileId));
     }
 
+
+    /// <summary>
+    /// Allocates a StaticSprite to the internal data structure and sets its texture to a specified tile within a loaded tileset.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded tileset.</param>
+    /// <param name="spriteName">The specified name of a tile within the tilesets source image.</param>
+    /// <returns></returns>
+    
     public Token AllocateStaticSprite(string tilesetName, string spriteName){
         return AllocateStaticSprite(tilesetName, spriteName, Vector2.Zero);
     }
 
+
+    /// <summary>
+    /// Allocates a StaticSprite to the internal data structure and sets its texture to a specified tile within a loaded tileset.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded tileset.</param>
+    /// <param name="spriteName">The specified name of a tile within the tilesets source image.</param>
+    /// <param name="position">The position where the sprite should be located.</param>
+    /// <returns></returns>
+    
     public Token AllocateStaticSprite(string tilesetName, string spriteName, Vector2 position){
         
         // Allocate.
@@ -85,11 +107,28 @@ public class SpriteRenderer : IDisposable{
     }
 
 
+    /// <summary>
+    /// Loads a map of tiles by a given array of tile-ids.
+    /// </summary>
+    /// <param name="tileIdMap">The array that stores the tile-ids.</param>
+    /// <param name="tilesetName">The name of the loaded tileset within this SpriteRenderer.</param>
+    /// <param name="mapWidth">The width, in tile quantity, of the map.</param>
+    /// <param name="mapHeight">The height, in tile quantity, of the map.</param>
+
     public void LoadTileMap(long[] tileIdMap, string tilesetName, int mapWidth, int mapHeight){
+
+        // Get a reference to the tileset.
+
         ref Tileset tileset = ref GetTileset(tilesetName);
+        
+        // Lifting of invarience.
+
         int tileWidth = tileset.TileWidth;
         int tileHeight = tileset.TileHeight;
         int index = 0;
+        
+        // Create static sprites in accordance with the specified map.
+
         for(int y = 0; y < mapHeight; y++){
             for(int x = 0; x < mapWidth; x++){
                 if(tileIdMap[index] > 0){
@@ -107,11 +146,13 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
+    
     /// <summary>
     /// Allocates a AnimatedSprite to the internal data structure.
     /// </summary>
     /// <param name="sprite">The data to assign to the newly allocated slot.</param>
     /// <returns>A Token to the data's position in the internal data structure.</returns>
+    
     public Token AllocateAnimatedSprite(AnimatedSprite sprite){
         
         // Allocate.
@@ -133,7 +174,27 @@ public class SpriteRenderer : IDisposable{
         return token;
     }
 
-    public Token AllocateAnimatedSprite(string atlasName, string animationName){
+
+    /// <summary>
+    /// Allocates a AnimatedSprite to the internal data structure and sets its texture to a specified tile within a loaded tileset.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded Tileset.</param>
+    /// <param name="animationName">The name of an Animation within the Tileset.</param>
+    /// <returns></returns>
+
+    public Token AllocateAnimatedSprite(string tilesetName, string animationName){
+        return AllocateAnimatedSprite(tilesetName, animationName, Vector2.Zero);        
+    }
+
+
+    /// <summary>
+    /// Allocates a AnimatedSprite to the internal data structure and sets its texture to a specified tile within a loaded tileset.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded Tileset.</param>
+    /// <param name="animationName">The name of an Animation within the Tileset.</param>
+    /// <returns></returns>
+
+    public Token AllocateAnimatedSprite(string tilesetName, string animationName, Vector2 position){
         
         // Allocate.
 
@@ -146,34 +207,40 @@ public class SpriteRenderer : IDisposable{
         }
 
         // set data.
-        animatedSprites.TryGetData(ref token).Data = new AnimatedSprite(tilesets[atlasName].Animations[animationName], Vector2.Zero, atlasName);
+        animatedSprites.TryGetData(ref token).Data = new AnimatedSprite(tilesets[tilesetName].Animations[animationName], position, tilesetName);
 
         // return;
 
         return token;
     }
 
+
     /// <summary>
     /// Frees a Sprite from the internal data structure at a given index.
     /// </summary>
     /// <param name="index">The specified index to free at.</param>
+
     public void FreeStaticSprite(int index){
         staticSprites.Free(index);
     }
+
 
     /// <summary>
     /// Frees a AnimatedSprite from the internal data structure at a given index.
     /// </summary>
     /// <param name="index">The specified index to free at.</param>
+
     public void FreeAnimatedSprite(int index){
         animatedSprites.Free(index);
     }
+
 
     /// <summary>
     /// Sets the Position of a Sprite within this SpriteRenderer.
     /// </summary>
     /// <param name="token">The specified Token to reference a Sprite within the internal data structure.</param>
     /// <param name="position">The position to assign to the specified Sprite.</param>
+
     public void SetStaticSpritePosition(ref Token token, Vector2 position){
         RefView<StaticSprite> sprite = GetStaticSprite(ref token);
         if(sprite.IsValid){
@@ -181,11 +248,13 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
+
     /// <summary>
     /// Sets the Position of a AnimatedSprite within this SpriteRenderer.
     /// </summary>
     /// <param name="token">The specified Token to reference a Sprite within the internal data structure.</param>
     /// <param name="position">The position to assign to the specified AnimatedSprite.</param>
+
     public void SetAnimatedSpritePosition(ref Token token, Vector2 position){
         RefView<AnimatedSprite> sprite = GetAnimatedSprite(ref token);
         if(sprite.IsValid){
@@ -241,22 +310,24 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
-    public void DrawAll(SpriteBatch spriteBatch, SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = null){
-        DrawStaticSprites(spriteBatch);
-        DrawAnimatedSprites(spriteBatch);
+
+    /// <summary>
+    /// Creates a Tileset instance within this SpriteRenderer.
+    /// </summary>
+    /// <param name="config">The json config instance used to create the runtime Tileset instance.</param>
+
+    public void LoadTileset(SceneManagement.Config.Tileset config){
+        LoadTileset(config.Source, (int)config.Firstgid);
     }
 
-    // public void LoadTilesetData(Dictionary<long, string> tilesetsToLoad){
-    //     foreach (KeyValuePair<long, string> kvp in tilesetsToLoad){
-    //         LoadTilesetData((int)kvp.Key, kvp.Value);
-    //     }
-    // }
 
-    public void LoadTilesetData(SceneManagement.Config.Tileset token){
-        LoadTilesetData(token.Source, (int)token.Firstgid);
-    }
+    /// <summary>
+    /// Create a Tileset instance within this SpriteRenderer.
+    /// </summary>
+    /// <param name="jsonPath">The file path, relative to ImagesFileDirectory, that stores the json config of a given tileset.</param>
+    /// <param name="firstGid">The FirstGid offset of the newly created Tileset instance.</param>
 
-    public void LoadTilesetData(string jsonPath, int firstGid){
+    public void LoadTileset(string jsonPath, int firstGid = 1){
         
         // get the name of the tileset.
 
@@ -275,10 +346,33 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
-    public void UnloadTilesetData(string tilesetName){
+
+    /// <summary>
+    /// Unloads a loaded Tileset within this SpriteRenderer.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded tileset (the config file name without its extension).</param>
+
+    public void UnloadTileset(string tilesetName){
         tilesets[tilesetName].Dispose();
         tilesets.Remove(tilesetName);
     }
+
+
+    /// <summary>
+    /// Draws all sprites, both animated and static, that is stored within this SpriteRenderer.
+    /// </summary>
+    /// <param name="spriteBatch"></param>
+
+    public void DrawAll(SpriteBatch spriteBatch){
+        DrawStaticSprites(spriteBatch);
+        DrawAnimatedSprites(spriteBatch);
+    }
+
+
+    /// <summary>
+    /// Draws all AnimatedSprite instances that are stored within this SpriteRenderer.
+    /// </summary>
+    /// <param name="spriteBatch"></param>
 
     public void DrawAnimatedSprites(SpriteBatch spriteBatch){
         for(int i = 0; i < animatedSprites.Capacity; i++){
@@ -310,6 +404,12 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
+
+    /// <summary>
+    /// Draws all StaticSprite instances that are stored within this SpriteRenderer.
+    /// </summary>
+    /// <param name="spriteBatch"></param>
+
     public void DrawStaticSprites(SpriteBatch spriteBatch){
         for(int i = 0; i < staticSprites.Capacity; i++){
             // Skip the slot if it is not active.
@@ -340,6 +440,14 @@ public class SpriteRenderer : IDisposable{
         }
     }
 
+
+    /// <summary>
+    /// Gets the reference to a loaded Tileset instance within this SpriteRenderer.
+    /// </summary>
+    /// <param name="tilesetName">The name of the loaded tileset (the config file name without its extension).</param>
+    /// <returns></returns>
+    /// <exception cref="Exception"></exception>
+
     public ref Tileset GetTileset(string tilesetName){
         ref Tileset tileset = ref System.Runtime.InteropServices.CollectionsMarshal.GetValueRefOrAddDefault(tilesets, tilesetName, out bool exists);
         if(exists == false){
@@ -350,12 +458,6 @@ public class SpriteRenderer : IDisposable{
         }
 
     }
-
-    // public void FreeTextures(){
-    //     // dispose texture atlases.
-    //     // clear the texture atlas list.
-    //     // GC.Collect().
-    // }
 
     public void Dispose(){
 
