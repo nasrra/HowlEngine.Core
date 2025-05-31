@@ -212,13 +212,13 @@ public class AABBPhysicSystem{
     public void DrawAllOutlines(SpriteBatch spriteBatch, Color color, int thickness){
         for(int i = 0; i < staticBodies.Capacity; i++){
             if(staticBodies.IsSlotActive(i)==false){
-                return;
+                continue;
             }
             DrawOutline(ref staticBodies.GetData(i), spriteBatch, color, thickness);
         }
         for(int i = 0; i < physicsBodies.Capacity; i++){
             if(physicsBodies.IsSlotActive(i)==false){
-                return;
+                continue;
             }
             ref PhysicsBodyAABB p = ref physicsBodies.GetData(i);
             ref RectangleColliderStruct collider = ref p.Collider;

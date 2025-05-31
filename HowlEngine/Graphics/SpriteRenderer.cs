@@ -252,8 +252,8 @@ public class SpriteRenderer : IDisposable{
     //     }
     // }
 
-    public void LoadTilesetData(TilesetToken token){
-        LoadTilesetData(token.Source, (int)token.FirstGid);
+    public void LoadTilesetData(SceneManagement.Config.Tileset token){
+        LoadTilesetData(token.Source, (int)token.Firstgid);
     }
 
     public void LoadTilesetData(string jsonPath, int firstGid){

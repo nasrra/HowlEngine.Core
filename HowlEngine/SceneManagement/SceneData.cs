@@ -6,7 +6,7 @@
 //
 //    var sceneData = SceneData.FromJson(jsonString);
 
-namespace HowlEngine.SceneManagement
+namespace HowlEngine.SceneManagement.Config
 {
     using System;
     using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace HowlEngine.SceneManagement
     public partial class SceneData
     {
         [JsonPropertyName("compressionlevel")]
-        public long CompressionLevel { get; set; }
+        public long Compressionlevel { get; set; }
 
         [JsonPropertyName("height")]
         public long Height { get; set; }
@@ -29,31 +29,31 @@ namespace HowlEngine.SceneManagement
         public bool Infinite { get; set; }
 
         [JsonPropertyName("layers")]
-        public Layer[] Layers { get; set; }
+        public LayerGroup[] LayerGroup { get; set; }
 
         [JsonPropertyName("nextlayerid")]
-        public long NextLayerId { get; set; }
+        public long Nextlayerid { get; set; }
 
         [JsonPropertyName("nextobjectid")]
-        public long NextObjectId { get; set; }
+        public long Nextobjectid { get; set; }
 
         [JsonPropertyName("orientation")]
         public string Orientation { get; set; }
 
         [JsonPropertyName("renderorder")]
-        public string RenderOrder { get; set; }
+        public string Renderorder { get; set; }
 
         [JsonPropertyName("tiledversion")]
-        public string TiledVersion { get; set; }
+        public string Tiledversion { get; set; }
 
         [JsonPropertyName("tileheight")]
-        public long TileHeight { get; set; }
+        public long Tileheight { get; set; }
 
         [JsonPropertyName("tilesets")]
-        public TilesetToken[] TilesetTokens { get; set; }
+        public Tileset[] Tilesets { get; set; }
 
         [JsonPropertyName("tilewidth")]
-        public long TilewWdth { get; set; }
+        public long Tilewidth { get; set; }
 
         [JsonPropertyName("type")]
         public string Type { get; set; }
@@ -63,17 +63,44 @@ namespace HowlEngine.SceneManagement
 
         [JsonPropertyName("width")]
         public long Width { get; set; }
-     
-        public static SceneData FromJson(string json) => JsonSerializer.Deserialize<SceneData>(json, HowlEngine.Json.Converter.Settings);
+    }
+
+    public partial class LayerGroup
+    {
+        [JsonPropertyName("id")]
+        public long Id { get; set; }
+
+        [JsonPropertyName("layers")]
+        public Layer[] Layers { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("opacity")]
+        public long Opacity { get; set; }
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        [JsonPropertyName("visible")]
+        public bool Visible { get; set; }
+
+        [JsonPropertyName("x")]
+        public long X { get; set; }
+
+        [JsonPropertyName("y")]
+        public long Y { get; set; }
     }
 
     public partial class Layer
     {
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("data")]
         public long[] Data { get; set; }
 
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         [JsonPropertyName("height")]
-        public long Height { get; set; }
+        public long? Height { get; set; }
 
         [JsonPropertyName("id")]
         public long Id { get; set; }
@@ -83,6 +110,45 @@ namespace HowlEngine.SceneManagement
 
         [JsonPropertyName("opacity")]
         public long Opacity { get; set; }
+
+        [JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        [JsonPropertyName("visible")]
+        public bool Visible { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("width")]
+        public long? Width { get; set; }
+
+        [JsonPropertyName("x")]
+        public long X { get; set; }
+
+        [JsonPropertyName("y")]
+        public long Y { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("draworder")]
+        public string Draworder { get; set; }
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [JsonPropertyName("objects")]
+        public Object[] Objects { get; set; }
+    }
+
+    public partial class Object
+    {
+        [JsonPropertyName("height")]
+        public long Height { get; set; }
+
+        [JsonPropertyName("id")]
+        public long Id { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("rotation")]
+        public long Rotation { get; set; }
 
         [JsonPropertyName("type")]
         public string Type { get; set; }
@@ -100,16 +166,22 @@ namespace HowlEngine.SceneManagement
         public long Y { get; set; }
     }
 
-    public partial class TilesetToken
+    public partial class Tileset
     {
         [JsonPropertyName("firstgid")]
-        public long FirstGid { get; set; }
+        public long Firstgid { get; set; }
 
         [JsonPropertyName("source")]
         public string Source { get; set; }
     }
 
-    public static class SceneDataExtensions{
+    public partial class SceneData
+    {
+        public static SceneData FromJson(string json) => JsonSerializer.Deserialize<SceneData>(json, HowlEngine.Json.Converter.Settings);
+    }
+
+    public static class Serialize
+    {
         public static string ToJson(this SceneData self) => JsonSerializer.Serialize(self, HowlEngine.Json.Converter.Settings);
     }
 }
