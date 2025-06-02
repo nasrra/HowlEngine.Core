@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using HowlEngine.Collections;
 using HowlEngine.ECS;
 using Microsoft.Xna.Framework;
@@ -19,10 +20,10 @@ namespace HowlEngine.Physics;
 
 public class AABBPhysicSystem{
     private StructPool<PhysicsBodyAABB> physicsBodies; 
-    private StructPool<RectangleColliderStruct> staticBodies;    
+    private StructPool<RectangleCollider> staticBodies;    
 
     public AABBPhysicSystem(int staticColliderAmount, int physicsBodyAmount){
-        staticBodies = new StructPool<RectangleColliderStruct>(staticColliderAmount);
+        staticBodies = new StructPool<RectangleCollider>(staticColliderAmount);
         physicsBodies = new StructPool<PhysicsBodyAABB>(physicsBodyAmount);
     }
 
@@ -47,7 +48,7 @@ public class AABBPhysicSystem{
     /// </summary>
     /// <param name="body"></param>
     /// <returns>A Token to reference the newly allocated StaticBody.</returns>
-    public Token AllocateStaticBody(RectangleColliderStruct body){
+    public Token AllocateStaticBody(RectangleCollider body){
         // allocate.
         Token token = staticBodies.Allocate();
         if(token.Valid == false){
@@ -76,6 +77,14 @@ public class AABBPhysicSystem{
     }
 
     /// <summary>
+    /// Frees a PhysicsBody in the internal data structure at a given index.
+    /// </summary>
+    /// <param name="index">The specified Token used to index an allocation to free.</param>
+    public void FreePhysicsBody(ref Token token){
+        physicsBodies.Free(token.Id);
+    }
+
+    /// <summary>
     /// Frees the last allocated StaticBody within the internal data structure.
     /// </summary>
     public void FreeLastStaticBody(){
@@ -94,12 +103,12 @@ public class AABBPhysicSystem{
     /// </summary>
     /// <param name="gameTime"></param>
     public void FixedUpdate(GameTime gameTime){
-        for(int i = 0; i < physicsBodies.Capacity; i++){
+        Parallel.For(0, physicsBodies.Capacity, i =>{
             
             // pass the slot if its is not in use.
             
             if(physicsBodies.IsSlotActive(i) == false){
-                continue;
+                return;
             }
 
             float?[] timeOfImpact = null;
@@ -170,7 +179,7 @@ public class AABBPhysicSystem{
             else{
                 pA.Position += pA.Velocity;
             }
-        }
+        });
     }
 
     /// <summary>
@@ -180,11 +189,11 @@ public class AABBPhysicSystem{
     /// <param name="x">The x-position to set the StaticBody to.</param>
     /// <param name="y">The y-position to set the StaticBody to.</param>
     public void SetStaticBodyPosition(ref Token token, int x, int y){
-        RefView<RectangleColliderStruct> rf = staticBodies.TryGetData(ref token);
+        RefView<RectangleCollider> rf = staticBodies.TryGetData(ref token);
         if(rf.Valid== false){
             return;
         }
-        ref RectangleColliderStruct box = ref rf.Data;
+        ref RectangleCollider box = ref rf.Data;
         box.X = x;
         box.Y = y;
     }
@@ -221,7 +230,7 @@ public class AABBPhysicSystem{
                 continue;
             }
             ref PhysicsBodyAABB p = ref physicsBodies.GetData(i);
-            ref RectangleColliderStruct collider = ref p.Collider;
+            ref RectangleCollider collider = ref p.Collider;
             DrawOutline(ref collider, spriteBatch, color, thickness);
         }
     }
@@ -233,14 +242,14 @@ public class AABBPhysicSystem{
     }
 
     public void DrawOutline(ref Token token, SpriteBatch spriteBatch, Color color, int thickness){
-        RefView<RectangleColliderStruct> rf = staticBodies.TryGetData(ref token);
+        RefView<RectangleCollider> rf = staticBodies.TryGetData(ref token);
         if(rf.Valid == false){
             return;
         }
         DrawOutline(ref rf.Data,spriteBatch,color, thickness);
     }
 
-    private void DrawOutline(ref RectangleColliderStruct box, SpriteBatch spriteBatch, Color color, int thickness){
+    private void DrawOutline(ref RectangleCollider box, SpriteBatch spriteBatch, Color color, int thickness){
         // Top.
         spriteBatch.Draw(HowlApp.Instance.DebugTexture, new Rectangle(box.X, box.Y, box.Width, thickness), color);
         // Left.
@@ -286,7 +295,7 @@ public class AABBPhysicSystem{
     /// <param name="boxA">The bounding box for the first structure.</param>
     /// <param name="boxB">The bounding box for the second structure.</param>
     /// <returns>true, if the two boxes are colliding; otherwise false.</returns>
-    public bool AABB(ref RectangleColliderStruct boxA, ref RectangleColliderStruct boxB){
+    public bool AABB(ref RectangleCollider boxA, ref RectangleCollider boxB){
         return 
             boxA.Left < boxB.Right &&
             boxA.Right > boxB.Left &&
@@ -377,7 +386,7 @@ public class AABBPhysicSystem{
         // calculate the effected movement from the supposed impact.
         
         Vector2 pointOfImpact = pA.Position + pA.Velocity * entryTime;
-        RectangleColliderStruct movementA = new RectangleColliderStruct((int)pointOfImpact.X, (int)pointOfImpact.Y, pA.Width, pA.Height);
+        RectangleCollider movementA = new RectangleCollider((int)pointOfImpact.X, (int)pointOfImpact.Y, pA.Width, pA.Height);
         
         // Check if there is an AABB overlap at the point of impact.
         // If there is, it is a valid change in movement.
@@ -405,7 +414,7 @@ public class AABBPhysicSystem{
         return timeOfImpact;
     }
 
-    public bool SweptAABB(ref PhysicsBodyAABB pA, ref RectangleColliderStruct bB){
+    public bool SweptAABB(ref PhysicsBodyAABB pA, ref RectangleCollider bB){
         return false;
     }
 }

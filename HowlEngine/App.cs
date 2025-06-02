@@ -3,6 +3,10 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using HowlEngine.Input;
 using HowlEngine.Audio;
+using HowlEngine.Graphics;
+using HowlEngine.Physics;
+using HowlEngine.SceneManagement;
+using HowlEngine.Helpers;
 
 namespace HowlEngine;
 
@@ -42,10 +46,36 @@ public class HowlApp : Game {
     /// </summary>
     public static AudioManager AudioManager {get; private set;}
 
-    public static string AssetsFileDirectory    {get; private set;}
-    public static string ScenesFileDirectory    {get; private set;}
-    public static string ImagesFileDirectory    {get; private set;}
-    public static string AudioFileDirectory     {get; private set;}
+    /// <summary>
+    /// Gets the entity manager used to allocate and free any game objects.
+    /// </summary>
+    public static EntityManager EntityManager { get; protected set; }
+
+    /// <summary>
+    /// Gets the sprite renderer used to draw all images to the screen.
+    /// </summary>
+    public static SpriteRenderer SpriteRenderer { get; protected set; }
+
+    /// <summary>
+    /// Gets the physics system used to handle all physics bodies within the game.
+    /// </summary>
+    public static AABBPhysicSystem PhysicsSystem { get; protected set; }
+
+    /// <summary>
+    /// Gets the scene manager to load, unload, serialise, and deserialise scenes.
+    /// </summary>
+    public static SceneManager SceneManager { get ; protected set; }
+
+    /// <summary>
+    /// Gets the TypeFactory for runtime construction of types (class, struct, interface, etc.) when dealing with config files.
+    /// </summary>
+    public static TypeFactory TypeFactory { get; protected set; }
+
+    public static string AssetsFileDirectory    { get; private set; }
+    public static string ScenesFileDirectory    { get; private set; }
+    public static string ImagesFileDirectory    { get; private set; }
+    public static string AudioFileDirectory     { get; private set; }
+    public static string TemplatesFileDirectory { get; private set; }
 
     private static float _fixedUpdateCounter = 0.0f;
     private static float _fixedDeltaTime = 0.0166667f; // update the physics loop at 60hz;
@@ -81,10 +111,11 @@ public class HowlApp : Game {
         AudioManager = new AudioManager("Assets\\Audio\\Desktop");
 
         // This points to your executable directory, which is accessible for reading on most console platforms (Xbox, PS, Switch), assuming proper packaging.
-        AssetsFileDirectory = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets");
-        ScenesFileDirectory = System.IO.Path.Combine(AssetsFileDirectory, "Scenes\\Exports");
-        ImagesFileDirectory = System.IO.Path.Combine(AssetsFileDirectory, "Images\\Exports");
-        AudioFileDirectory  = System.IO.Path.Combine(AssetsFileDirectory, "Audio\\Desktop");
+        AssetsFileDirectory     = System.IO.Path.Combine(AppContext.BaseDirectory, "Assets");
+        ScenesFileDirectory     = System.IO.Path.Combine(AssetsFileDirectory, "Scenes\\Exports");
+        ImagesFileDirectory     = System.IO.Path.Combine(AssetsFileDirectory, "Images\\Exports");
+        AudioFileDirectory      = System.IO.Path.Combine(AssetsFileDirectory, "Audio\\Desktop");
+        TemplatesFileDirectory  = System.IO.Path.Combine(AssetsFileDirectory, "Templates\\Exports");
     }
 
     protected override void Initialize(){

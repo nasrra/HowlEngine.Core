@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 namespace HowlEngine.Physics;
 
 public struct PhysicsBodyAABB{
-    public RectangleColliderStruct Collider;
+    public RectangleCollider Collider;
 
     // may need to add previous velocity for previoud frame check in case that velocities decay over time.
     public Vector2 Velocity {get; set;}
@@ -72,12 +72,12 @@ public struct PhysicsBodyAABB{
     /// </summary>
     public int Bottom => Collider.Bottom;
 
-    public PhysicsBodyAABB(RectangleColliderStruct collider){
+    public PhysicsBodyAABB(RectangleCollider collider){
         Collider = collider;
         Velocity = Vector2.Zero;
     }
 
-    public PhysicsBodyAABB(RectangleColliderStruct collider, Vector2 velocity){
+    public PhysicsBodyAABB(RectangleCollider collider, Vector2 velocity){
         Collider = collider;
         Velocity = velocity;
     }

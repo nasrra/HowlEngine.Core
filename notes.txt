@@ -9,3 +9,51 @@ If you do that once for every sprite you call, you'll have lots of string create
 What you can do instead is declaring string constants and putting those in there instead, as that allows you to reuse the same strings over and over which means they won't get garbage collected (at least not until your dictionary is not referenced by anything anymore). Or rather, create classes for your actors and reference the sprite directly in your class. Then make a list of all the actors to refresh and iterate over that in your draw calls.
 
 This may or may not be your problem, and you may have other things that generate garbage as well, but it was the first thing that came to mind when I read your post.
+
+
+public interface IStructDisposer<T> where T : struct
+{
+    void Dispose(ref T item);
+}
+
+public static class StructDisposer<T> where T : struct
+{
+    public static IStructDisposer<T>? Instance;
+
+    public static void Dispose(ref T item)
+    {
+        Instance?.Dispose(ref item);
+    }
+}
+
+public class StructPool<T> : IDisposable where T : struct
+{
+    private T[] _items;
+    private int _count;
+
+    public StructPool(int capacity)
+    {
+        _items = new T[capacity];
+        _count = 0;
+    }
+
+    public void Add(T item)
+    {
+        if (_count < _items.Length)
+            _items[_count++] = item;
+        else
+            throw new InvalidOperationException("Pool is full.");
+    }
+
+    public void Dispose()
+    {
+        for (int i = 0; i < _count; i++)
+        {
+            StructDisposer<T>.Dispose(ref _items[i]);
+        }
+
+        // Optionally clear array for reuse
+        Array.Clear(_items, 0, _count);
+        _count = 0;
+    }
+}

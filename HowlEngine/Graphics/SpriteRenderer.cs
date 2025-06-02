@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 using HowlEngine.Collections;
 using System;
+using System.Threading.Tasks;
 
 namespace HowlEngine.Graphics;
 
@@ -236,6 +237,16 @@ public class SpriteRenderer : IDisposable{
 
 
     /// <summary>
+    /// Frees a AnimatedSprite from the internal data structure at a given index.
+    /// </summary>
+    /// <param name="Token">The specified Token used to index an allocation to free.</param>
+
+    public void FreeAnimatedSprite(ref Token token){
+        animatedSprites.Free(token.Id);
+    }
+
+
+    /// <summary>
     /// Sets the Position of a Sprite within this SpriteRenderer.
     /// </summary>
     /// <param name="token">The specified Token to reference a Sprite within the internal data structure.</param>
@@ -288,12 +299,12 @@ public class SpriteRenderer : IDisposable{
 
         // Update animated sprites.
 
-        for(int i = 0; i < animatedSprites.Capacity; i++){
+        Parallel.For(0, animatedSprites.Capacity, i =>{
 
             // Skip the slot if it is not active.
 
             if(animatedSprites.IsSlotActive(i) == false){
-                continue;
+                return;
             }
 
             // Get the animated sprite to update.
@@ -307,7 +318,7 @@ public class SpriteRenderer : IDisposable{
                 sprite.CurrentFame = sprite.CurrentFame >= sprite.Animation.Frames.Length-1? 0 : sprite.CurrentFame += 1;
                 sprite.TextureRegion = sprite.Animation.Frames[sprite.CurrentFame];
             } 
-        }
+        });
     }
 
 
@@ -333,6 +344,8 @@ public class SpriteRenderer : IDisposable{
 
         string name = System.IO.Path.GetFileNameWithoutExtension(jsonPath);
        
+        Console.WriteLine(name);
+
         // Allocate a new tileset.
         
         tilesets.Add(name, new Tileset());
@@ -459,6 +472,11 @@ public class SpriteRenderer : IDisposable{
 
     }
 
+
+    /// <summary>
+    /// Frees the internal data structures and Disposes of all loaded Tilesets.
+    /// </summary>
+
     public void Dispose(){
 
         // dispose all tilesets.
@@ -469,9 +487,11 @@ public class SpriteRenderer : IDisposable{
                 tileset.Dispose();
             }
         }
-
         tilesets.Clear();
 
         // dispose of sprites.
+        
+        animatedSprites.Dispose();
+        staticSprites.Dispose();
     }
 }

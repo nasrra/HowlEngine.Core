@@ -1,11 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using HowlEngine.Collections;
+using System.Threading.Tasks;
 
-namespace HowlEngine.ECS;
+namespace HowlEngine.Collections;
 
-public class StructPool<T> where T : struct{
+public class ClassPool<T> : IDisposable where T : class, IDisposable{
     private struct Slot{
         public T Data;
         public ushort Gen;
@@ -34,7 +35,7 @@ public class StructPool<T> where T : struct{
     /// Creates a new StructPool.
     /// </summary>
     /// <param name="size">The length of the internal array of this StructPool.</param>
-    public StructPool(int size){
+    public ClassPool(int size){
         _slots = new Slot[size];
         _freeSlots = new Stack<int>(Enumerable.Range(0,size));
     }
@@ -69,7 +70,7 @@ public class StructPool<T> where T : struct{
     }
 
     /// <summary>
-    /// Removes an available slot in the StructPool, freeing it for later resauge. 
+    /// Removes an available slot in the ClassPool, freeing it for later resauge. 
     /// </summary>
     /// <param name="token">The specidifed Token to access the slot.</param>
     public void Free(int id){
@@ -81,25 +82,54 @@ public class StructPool<T> where T : struct{
         ref Slot slot = ref _slots[id];
         
         // remove the slot from the game loop.
+        
         slot.Active = false;
 
+        // null the strong reference, preparing it for garbage collection.
+
+        slot.Data = null;
+
         // increment the generation to avoid reuse and id bugs.
+        
         slot.Gen += 1;
 
         Count--;
 
         // append the slot to free slots for reuse.
+        
         _freeSlots.Push(id);
     }
 
+    /// <summary>
+    /// Calls the Dispose function of a given class instance within the internal data structure.
+    /// </summary>
+    /// <param name="token">The token used to index the instance within the internal data structure.</param>
+    public void DisposeAt(ref Token token){
+        DisposeAt(token.Id);
+    }
 
-
+    /// <summary>
+    /// Calls the Dispose function of a given class instance within the internal data structure.
+    /// </summary>
+    /// <param name="id">The id used to index the instance within the internal data structure.</param>
+    public void DisposeAt(int id){
+        if(_freeSlots.Count == _slots.Length){
+            Console.WriteLine($"[WARNING]: StructPool {typeof(T).Name} has reached zero!");
+            return;
+        }
+        // get the slot.
+        ref Slot slot = ref _slots[id];
+        
+        // null the strong reference, preparing it for garbage collection.
+        slot.Data.Dispose();
+    }
 
     /// <summary>
     /// Gets the data within the internal data structure.
     /// </summary>
     /// <param name="token">The specified token to try and recieve data from.</param>
     /// <returns>A RefView with a reference to retrieved data.</returns>
+    
     public RefView<T> TryGetData(ref Token token){
         ref Slot slot = ref _slots[token.Id];
         if (slot.Gen == token.Gen){
@@ -110,14 +140,16 @@ public class StructPool<T> where T : struct{
         }
     }
 
+
     /// <summary>
     /// Gets the data within a slot.
     /// </summary>
     /// <param name="slotIndex">The specified index in the internal array to access the slot.</param>
     /// <returns>A reference to the data stored in the slot.</returns>
-    public ref T GetData(int slotIndex){
-        return ref _slots[slotIndex].Data;
+    public T GetData(int slotIndex){
+        return _slots[slotIndex].Data;
     }
+
 
     /// <summary>
     /// Checks if a slot is currently free or active.
@@ -129,12 +161,13 @@ public class StructPool<T> where T : struct{
     }
 
     /// <summary>
-    /// Gets the data within a slot.
+    /// Frees the internal data structure and calls Dispose on all stored instances.
     /// </summary>
-    /// <param name="token">The specified Token to access the slot.</param>
-    /// <returns>A reference to the data stored in the slot.</returns>
-    // public ref T GetData(ref Token token){
-    //     ref Slot slot = ref _slots[token.Id];
-    //     return ref _slots[token.Id].Data;
-    // }
+    public void Dispose(){
+        Parallel.For(0, _slots.Length, i =>{
+            _slots[i].Data.Dispose();
+        });
+        _slots = null;
+        _freeSlots.Clear();
+    }
 }
