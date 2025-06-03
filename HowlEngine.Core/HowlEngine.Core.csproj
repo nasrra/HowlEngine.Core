@@ -1,0 +1,54 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.2.1105">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+  
+  <PropertyGroup>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <!--=====================================================================================
+    BELOW ARE CONFIGURATIONS FOR THE ENGINE. 
+    
+    DEBUG:    Is for testing a build of a game when all changes from DEV are satisfactory.
+    DEV:      Should be used when working on a game via a Code Editor. 
+    RELEASE:  Is for the finalised build of a game that consumers will play.
+    
+    DEV is the default configuration of a game.
+
+    THIS SHOULD BE COPIED TO THE GAME BEING WORKED ON.
+  ======================================================================================-->
+  <PropertyGroup>
+    <Configurations>Dev;Release;Debug</Configurations>
+    <Configuration Condition="'$(Configuration)' == ''">Dev</Configuration>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Dev'">
+    <DefineConstants>DEV;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <DefineConstants>RELEASE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\HowlEngine.AssetManagement\HowlEngine.AssetManagement.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.Audio\HowlEngine.Audio.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.Collections\HowlEngine.Collections.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.ECS\HowlEngine.ECS.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.Graphics\HowlEngine.Graphics.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.Physics\HowlEngine.Physics.csproj" />
+    <ProjectReference Include="..\..\HowlEngine.SceneManagement\HowlEngine.SceneManagement.csproj" />
+  </ItemGroup>  
+</Project>
