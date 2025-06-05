@@ -12,71 +12,100 @@ using HowlEngine.AssetManagement;
 namespace HowlEngine.Core;
 
 public class HowlApp : Game {
+
+
     /// <summary>
     /// Gets a reference to the app instance.
     /// </summary>
+
     public static HowlApp Instance {get;private set;}
+
 
     /// <summary>
     /// Gets the graphics device manager to control the presentation of graphics.
     /// </summary>
+
     public static GraphicsDeviceManager Graphics {get; private set;}
+
 
     /// <summary>
     /// Gets the graphics device used to create graphical resources and perform primitive rendering.
     /// </summary>
+
     public static new GraphicsDevice GraphicsDevice { get; private set; }
+
 
     /// <summary>
     /// Gets the sprite batch used for all 2D rendering.
     /// </summary>
+
     public static SpriteBatch SpriteBatch { get; private set; }
+
 
     /// <summary>
     /// Gets the input manager used to get keyboard, mouse, and gamepad input.
     /// </summary>
+
     public static InputManager Input {get; private set;}
+
 
     /// <summary>
     /// The time taken between the previous and current frame.
     /// </summary>
+
     public static float DeltaTime{get; private set;}
+
 
     /// <summary>
     /// Gets the audio manager used to play and emit sounds.
     /// </summary>
+
     public static AudioManager AudioManager {get; protected set;}
+
 
     /// <summary>
     /// Gets the entity manager used to allocate and free any game objects.
     /// </summary>
+
     public static EntityManager EntityManager { get; protected set; }
+
 
     /// <summary>
     /// Gets the sprite renderer used to draw all images to the screen.
     /// </summary>
+
     public static SpriteRenderer SpriteRenderer { get; protected set; }
+
 
     /// <summary>
     /// Gets the physics system used to handle all physics bodies within the game.
     /// </summary>
+
     public static AABBPhysicSystem PhysicsSystem { get; protected set; }
+
 
     /// <summary>
     /// Gets the scene manager to load, unload, serialise, and deserialise scenes.
     /// </summary>
+
     public static SceneManager SceneManager { get ; protected set; }
+
 
     /// <summary>
     /// Gets the asset manager.
     /// </summary>
+
     public static AssetManager AssetManager { get; protected set; }
+
+
+    /// <summary>
+    /// Gets the camera manager.
+    /// </summary>
+    
+    public static CameraManager CameraManager { get; protected set; }
 
     private static float _fixedUpdateCounter = 0.0f;
     private static float _fixedDeltaTime = 0.0166667f; // update the physics loop at 60hz;
-
-    // debug purposes.
-    public Texture2D DebugTexture{get; private set;}
 
     public HowlApp(string title, int width, int height, bool fullScreen, bool mouseVisible) {
 
@@ -115,9 +144,6 @@ public class HowlApp : Game {
         
         // Create a new input manager.
         Input = new InputManager();
-
-        DebugTexture = new Texture2D(GraphicsDevice, 1, 1);
-        DebugTexture.SetData([Color.White]);
 
         #if DEV
         Console.WriteLine("[HOWLAPP] DEV CONFIGURATION.");

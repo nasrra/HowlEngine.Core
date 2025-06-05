@@ -9,8 +9,6 @@ C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Collections.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.ECS.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Graphics.dll
-C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Interop.dll
-C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Math.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Physics.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.SceneManagement.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.AssetManagement.pdb
@@ -20,8 +18,6 @@ C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Graphics.pdb
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Physics.pdb
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.SceneManagement.pdb
-C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Interop.pdb
-C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Math.pdb
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\obj\Debug\net8.0\HowlEngine.Core.csproj.AssemblyReference.cache
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\obj\Debug\net8.0\HowlEngine.Core.GeneratedMSBuildEditorConfig.editorconfig
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\obj\Debug\net8.0\HowlEngine.Core.AssemblyInfoInputs.cache
