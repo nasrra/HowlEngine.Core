@@ -130,10 +130,19 @@
       "HowlEngine.Graphics/1.0.0": {
         "dependencies": {
           "HowlEngine.AssetManagement": "1.0.0",
-          "HowlEngine.Collections": "1.0.0"
+          "HowlEngine.Collections": "1.0.0",
+          "HowlEngine.Math": "1.0.0"
         },
         "runtime": {
           "HowlEngine.Graphics.dll": {
+            "assemblyVersion": "1.0.0",
+            "fileVersion": "1.0.0.0"
+          }
+        }
+      },
+      "HowlEngine.Math/1.0.0": {
+        "runtime": {
+          "HowlEngine.Math.dll": {
             "assemblyVersion": "1.0.0",
             "fileVersion": "1.0.0.0"
           }
@@ -228,6 +237,11 @@
       "sha512": ""
     },
     "HowlEngine.Graphics/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "HowlEngine.Math/1.0.0": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
