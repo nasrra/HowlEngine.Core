@@ -31,3 +31,4 @@ C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\obj\Debug\net8.0\HowlEngine.
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\obj\Debug\net8.0\ref\HowlEngine.Core.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Math.dll
 C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\HowlEngine.Math.pdb
+C:\MonogameProjects\HowlEngine.Core\HowlEngine.Core\bin\Debug\net8.0\FontStashSharp.MonoGame.dll

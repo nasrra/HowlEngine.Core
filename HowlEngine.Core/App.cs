@@ -81,7 +81,7 @@ public class HowlApp : Game {
     /// Gets the physics system used to handle all physics bodies within the game.
     /// </summary>
 
-    public static PhysicSystem PhysicsSystem { get; protected set; }
+    public static PhysicsSystem PhysicsSystem { get; protected set; }
 
 
     /// <summary>

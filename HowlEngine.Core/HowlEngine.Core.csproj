@@ -43,6 +43,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Include="..\..\HowlEngine.Vendors\FontStashSharp\lib\FontStashSharp.MonoGame.dll">
+      <Link>FontStashSharp.MonoGame.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\HowlEngine.AssetManagement\HowlEngine.AssetManagement.csproj" />
     <ProjectReference Include="..\..\HowlEngine.Audio\HowlEngine.Audio.csproj" />
     <ProjectReference Include="..\..\HowlEngine.Collections\HowlEngine.Collections.csproj" />
